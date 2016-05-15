@@ -1,0 +1,39 @@
+# config version=3.5
+$ sepk
+  pod_drvr=jioserdesusb.dll
+  pod_port=0
+$ /
+$ product
+  title="Texas Instruments XDS100v2 USB"
+  alias=TI_XDS100v2_USB
+  name=FTDI_FT2232
+$ /
+$ ftdi_ft2232
+  usb_vid=0x0403
+  usb_pid=0xa6d0
+  gpio_l0="TRSTn,Active_Low"
+  gpio_l1="EMU_Pin_Enable,Active_Low"
+  gpio_l2="EMU_Pin_0,Active_Low"
+  gpio_l3="Adaptive_Clock,Active_High"
+  gpio_h0="SRSTn,Active_High"
+  gpio_h1="SRSTn_In,Active_Low"
+  gpio_h2="Power_Loss_Detect,Active_Low"
+  gpio_h3="Power_Loss_Reset,Active_High"
+  gpio_h4="EMU_Pin_1,Active_Low"
+  gpio_h5="Cable_Disconnect,Active_High"
+  gpio_h6="Loopback,Active_High"
+$ /
+$ uscif
+  tdoedge=FALL
+  jtagboot_mode=disable
+  jtagboot_value=hiz
+  powerboot_mode=disable
+  powerboot_value=hiz
+  tclk_program=SPECIFIC
+  tclk_frequency=1.0
+  loopback_mode=disable
+  loopback_value=disable
+$ /
+@ c55xx family=tms320c55xx irbits=38 drbits=1
+@ c55xx_0 family=tms320c55xx irbits=38 drbits=1
+# /
