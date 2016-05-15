@@ -1,0 +1,50 @@
+Equalizer
+
+ADC Biquad filter coefficients (see page 49 DS)
+
+BQA b0 b1 b2 a1 a2 => C7(reg36-38)-C11(reg52-54)
+BQB b0 b1 b2 a1 a2 => C12(reg56-58)-C16(reg72-74)
+BQC b0 b1 b2 a1 a2 => C17(reg76-78)-C21(reg92-94)
+BQD b0 b1 b2 a1 a2 => C22(reg96-98)-C26(reg112-114)
+BQE b0 b1 b2 a1 a2 => C27(reg116-118)-C31(pqge 9,reg12-14)
+___________________________________________________
+
+DAC Biquad filter coefficients
+
+BQ0-A b0 b1 b2 a1 a2 => C1(reg12-14)-C5(reg28-30), C33-C37
+	gain 0 to -40dB
+BQ1-5 
+Q = 1.4 or 2
+gain -15 to 15dB
+filter type: EQ or shelf
+Shelf response: treble or bass
+BQ1-B fc = 50  	b0 b1 b2 a1 a2 => C6(reg32-34)-C10(reg48-50), C38-C42
+BQ2-C fc = 175	b0 b1 b2 a1 a2 => C11-C15, C43-C47
+BQ3-D fc = 600	b0 b1 b2 a1 a2 => C16-C20, C48-C52
+BQ4-E fc = 2200	b0 b1 b2 a1 a2 => C21-C25, C53-C57
+BQ5-F fc = 8000	b0 b1 b2 a1 a2 => C26-C30, C58-C62
+
+###############################################
+# Signal Processing Settings
+###############################################
+#
+# Select Page 0
+w 30 00 00
+#
+# PRB_P2 selected for 6 biquads
+w 30 3C 02
+#
+# Select Page 44, Enable Adaptive filtering for DAC
+w 30 00 2c 04
+#
+# Flat response, Gain = -16.00 dB
+w 30 00 2C
+w 30 0C 00 00 00 00 0A BE 8D 00 00 00 00 00 00 00 00 00 00 00 00 00
+w 30 00 2D
+w 30 14 00 00 00 00 0A BE 8D 00 00 00 00 00 00 00 00 00 00 00 00 00
+w 30 00 3E
+w 30 0C 00 00 00 00 0A BE 8D 00 00 00 00 00 00 00 00 00 00 00 00 00
+w 30 00 3F
+w 30 14 00 00 00 00 0A BE 8D 00 00 00 00 00 00 00 00 00 00 00 00 00
+#
+###############################################

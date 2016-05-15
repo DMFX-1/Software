@@ -1,0 +1,1 @@
+"./spi_eepromApi.obj" "./csl_spi_example.obj" "./csl_i2c_ioExpander.obj" "../VC5505_SPI.cmd" -l"Debug/C55XXCSL_LP.lib" -l"libc.a" 

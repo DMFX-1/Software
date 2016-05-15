@@ -1,0 +1,497 @@
+*********************************************************************
+** Copyright (c) 2000, Texas Instruments, Inc.                     **
+** All rights reserved.                                            **
+**                                                                 **
+** TMS320C55x code for accessing IIC devices                       **
+**                                                                 **
+** Original author: Bill Wrightson                                 **
+** Start date: 2000-Oct-14                                         **
+**                                                                 **
+** Modified to access the AIC23 by Jeff Hayes, 2000-Dec-11         **
+** Modified for integration into the Amadeus ROM supporting access **
+**   to EEPROM devices and the AIC23 by Jason Kridner, 2001-Feb-01 **
+** Modified to fix bugs when accessing EEPROM devices and AIC23    **
+**   by Jason Lin, 2001-Aug-10                                     **
+*********************************************************************
+
+*********************************************************************
+* This file includes subroutines which can be used to access an I2C *
+* based serial EEPROM with the I2C serial port peripheral of the    *
+* C5500 generation of TI DSPs. The code is intended for use with    *
+* byte-wide serial EEPROMs. Although most IIC based EEPROMs include *
+* the same compatible interface, this code has only been tested     *
+* with the following devices:                                       *
+* CATALYST 24WC256                                                  *
+*                                                                   *
+* Some modification may be required for use with other EEPROMs.     *
+*                                                                   *
+* The same subroutines can be used to access the AIC23.  The AIC23  *
+* register and data should be concatenated and placed in the        *
+* address argument of IIC_WRITE.  The count should always be passed *
+* as 0.  IIC_READ does not work with the AIC23.                     *
+*********************************************************************
+* Known Limitations:                                                *
+* - This code supports device accesses in 7 bit address master      *
+*   transmitter and receiver modes only.                            *
+* - This code uses polling which is MIPs intensive and inefficient. *
+*   It can be modified to use interrupts or even DMA.  The polling  *
+*   mechanism does have a time out loop though to keep the DSP from *
+*   hanging up on an IIC access attempt.                            *
+* - This code must always write a minimum of 2 bytes to the device. *
+*   These 2 bytes are referred to as the address.  The IIC_READ     *
+*   function will always start by writing those 2 bytes.  IIC_WRITE *
+*   will write the 2 bytes and any number of following bytes.  This *
+*   specific behavior can be a limitation or a helpful feature      *
+*   depending on the application.                                   *
+* - The data (not address) is not packed.  Data is stored in the    *
+*   lower byte of every work in the buffer.                         *
+*********************************************************************
+* Based On:                                                         *
+* c5512_i2c_byte.asm by TNGU, 07/24/00                              *
+* from I2C Peripheral Module Design Requirement/Specification v1.3  *
+*********************************************************************
+* The following subroutines are implemented:                        *
+* vIIC_INIT  - Initializes the I2C port for master transmit mode.   *
+* vIIC_READ  - Reads data bytes from the I2C device.                *
+* vIIC_WRITE - Writes data bytes to the I2C device.                 *
+* POLL_FOR_SET - Polls the IIC status register for a bit to get set.*
+* POLL_FOR_CLEAR - Polls the IIC status register for a bit to clear.*
+*********************************************************************
+
+        .include    "iic.inc"
+        .def        _vIIC_INIT, _vIIC_READ, _vIIC_WRITE
+        .sect       ".iic"
+
+
+*********************************************************************
+* vIIC_INIT
+*
+* void vIIC_INIT(address, iv, clk_low, clk_high);
+*
+* Used registers:
+* T0 - 7 bit address
+* T1 - I2C module clock divider
+* AR0 - I2C serial low clock
+* AR1 - Clock divider for the I2C serial high clock
+*
+* AR4 - Pointer to I/O registers
+*
+*********************************************************************
+
+_vIIC_INIT
+
+        ; Place the I2C module in reset
+        AR4 = #ICMDR
+        *AR4 = #0 || writeport()
+	
+	    ; // *port(#ICMDR) = #0   ; // equivalent to above two lines
+
+        ; Wait a few cycles for the reset to register
+        REPEAT(#010h)
+        NOP
+
+        ; Change the module clock divider for a 12 Mhz clock; 
+		; IIC clock = DSP (or VBUS) clock/(CLKDIV+4) value in (#ICPSC)=(0x1A30)
+        AR4 = #ICPSC
+        *AR4 = T1 || writeport()
+
+        ; Mask the interrupts since we're polling
+        AR4 = #ICIMR
+        *AR4 = #0 || writeport()
+
+        ; Set the I2C to be a master transmitter
+        AR4 = #ICMDR
+        *AR4 = #4620 || writeport()        ; free running, 7 bit addr
+
+        ; Set the high and low clocks
+        AR4 = #ICCLKH
+        *AR4 = AR1 || writeport()
+        AR4 = #ICCLKL
+        *AR4 = AR0 || writeport()
+
+        ; Write the slave address
+        AR4 = #ICSAR
+        *AR4 = T0 || writeport()
+
+        return
+
+
+*********************************************************************
+* vIIC_READ
+*
+* Uint16 vIIC_READ(count, buffer);
+*
+* Return Value: The first data byte is returned in T0.
+*               The upper byte of T0 is the status.
+*                   0 - Success
+*                   1 - Failure
+*                   2 - Zero read
+*
+* Used Registers
+* T0 - number of bytes to read
+* AR0 - Pointer to the buffer to read the data into
+*
+* AR3 - Pointer to the beginning of the buffer
+* AR4 - Pointer to I/O registers
+* AC2 - Byte counter
+*
+*********************************************************************
+
+_vIIC_READ
+
+        XAR3 = XAR0             ; Set AR3 to the beginning of the buffer
+        
+        ; Load the byte count into ICCNT
+        AC2 = T0 & #0FFFFh
+        AR4 = #ICCNT
+        *AR4 = AC2 || writeport()
+        
+        ; End loop if no data to read
+        if(AC2 == #0) goto noByteCount
+
+        ; Configure the ICMDR with start and stop
+        AR4 = #ICMDR
+        *AR4 = #6C20h || writeport()   ; Begin master rcv. with start and stop
+
+        ; Start Data Receive loop
+        AR4 = #ICDRR
+nextRead
+        ; Test for receive ready
+        T0 = #ICRRDY_FLAG
+        call POLL_FOR_SET
+        if(T0 != #0) goto readError
+
+        ; Read byte
+        *AR0+ = *AR4 || readport()
+
+        ; End loop if done
+        AC2 = AC2 - #1
+        if(AC2 != #0) goto nextRead        
+
+        ; Check that the stop condition was sent
+        T0 = #ICBB_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto readError
+
+        ; Return
+        T0 = #00h
+        goto readReturn
+
+        ; If error out, send the stop condition and return an error code
+readError
+        AR4 = #ICMDR
+        *AR4 = #4C20h           ; Issue stop command
+        T0 = #ICBB_FLAG
+        call POLL_FOR_CLEAR
+
+        T0 = #001h              ; set the return code
+        goto readReturn
+
+        ; If the byte count is 0, send stop condition and return
+noByteCount
+        T0 = #002h
+
+readStop
+        AR4 = #ICMDR
+        *AR4 = #4C20h            ; Issue stop command
+        T0 = #ICBB_FLAG
+        call POLL_FOR_CLEAR
+
+readReturn
+        return                   
+
+
+*********************************************************************
+* vIIC_WRITE
+*
+* int vIIC_WRITE(stop, address, count, buffer);
+*
+* Return Value:
+*       0 = Success
+*       1 = Failure
+*       2 = Success with no stop
+*
+* Used registers
+* T0 - stop condition
+* T1 - address to write
+* AR0 - number of bytes to write
+* AR1 - address of buffer to write data from
+*
+* AR3 - Overall try count
+* AR4 - Pointer to I/O registers
+* AC0 - Scratch register
+* AC2 - Byte count
+*
+*********************************************************************
+
+_vIIC_WRITE
+	push(T0)
+        AC0 = T0
+        AC0 = AC0 << #11
+        AC0 = AC0 & #0800h
+
+        ; Check that bus is not in the middle of a transaction       
+        T0 = #ICBB_FLAG
+        call POLL_FOR_CLEAR        
+        if(T0 != #0) goto writeError
+
+        ; Set the ICCNT for the number of bytes to write plus 2
+        AC2 = AR0 
+        AC2 = AC2 + #2
+        AR4 = #ICCNT
+        *AR4 = AC2 || writeport()
+        
+        ; Wait a few cycles for the write to be written into the I/O memory
+        REPEAT(#010h)
+        NOP
+
+        ; Set up ICMDR to master transmit with start
+        ; The stop condition is dependent on the stop flag
+        AC0 = AC0 | #6620h
+        AR4 = #ICMDR
+        *AR4 = AC0 || writeport()
+
+        ; Wait a few cycles for the write to be written into the I/O memory
+        REPEAT(#010h)
+        NOP
+
+        ; Test for transmit ready
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_SET
+        if(T0 != #0) goto writeError
+        
+        ; Transmit upper address
+        AR4 = #ICDXR
+        AC0 = T1
+        AC0 = AC0 << #-8
+        *AR4 = AC0 || writeport()
+        
+        ; Test for the transmit shift not empty
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        ; Test for transmit ready
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_SET
+        if(T0 != #0) goto writeError
+        
+        ; Test for NACK error
+        T0 = #ICNACK_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        AC2 = AC2 - #1
+        if(AC2 == #0) goto endWrite
+
+        ; Transmit lower address
+        AC0 = T1 & #0FFh
+        *AR4 = AC0 || writeport()
+
+        ; Test for the transmit shift empty
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        ; Test for transmit ready
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_SET
+        if(T0 != #0) goto writeError
+
+        ; Test for NACK error
+        T0 = #ICNACK_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        AC2 = AC2 - #1
+        if(AC2 == #0) goto endWrite
+
+        ; Start Data Transmit Loop
+nextWrite
+
+
+        ; Transmit Data
+        *AR4 = *AR1+ || writeport()
+        
+        ; Test for the transmit shift empty
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        ; Test for transmit ready
+        T0 = #ICXRDY_FLAG
+        call POLL_FOR_SET
+        if(T0 != #0) goto writeError
+
+        ; 
+        T0 = #ICNACK_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        ; End loop if done
+        AC2 = AC2 - #1
+        if(AC2 != #0) goto nextWrite
+
+        ; Check that stop condition is sent if
+endWrite
+        T0 = pop()
+        if(T0 == #0) goto writeReturn
+        
+        T0 = #ICBB_FLAG
+        call POLL_FOR_CLEAR
+        if(T0 != #0) goto writeError
+
+        ; Return
+        T0 = #0
+        goto writeReturn
+
+        ; If error out, send the stop condition and return error code
+writeError
+		T0 = pop()
+        AR4 = #ICMDR
+        *AR4 = #0h || writeport()
+        
+        REPEAT(#010h)
+        NOP
+        
+        *AR4 = #4620h || writeport()
+        
+        ; Wait for the write to reigster in I/O memory
+        REPEAT(#010h)
+        NOP
+        
+        ; Write a 1 to the status register to clear BB
+        AR4 = #ICSTR
+        *AR4 = #ICBB_FLAG || writeport()
+        
+        T0 = #ICBB_FLAG
+        call POLL_FOR_CLEAR
+        T0 = #1
+
+writeReturn
+        return
+
+
+
+*********************************************************************
+* INTERNAL FUNCTION (only exposed for I2C asm funcs)
+*
+* POLL_FOR_SET
+* 
+* This function polls the IIC module status register for a certain 
+* bit flag which is set in the calling function.  If the bit flag
+* is set, the function returns success, if not, it continues polling
+* until success or timeout and returns an error if the function timed
+* out.
+*
+* Return Value: The status is returned in T0
+*           0 - success
+*           1 - failure
+*
+* Used Registers:
+*       T0 - the status bit to poll for
+*
+*       AR2 - Pointer to I/O registers
+*       AC1 - Count for maximum number of poll attempts
+*       AC0 - Scratch register
+*
+* WORKAROUNDS: There seems to be a feature where the status register
+*       doesn't update correctly.  To obtain a correct result from the
+*       status register, it seems to need to be written with 0xFFFF before
+*       reads.
+*
+*********************************************************************
+POLL_FOR_SET
+       ; set up number of poll attempts and return status
+       AC1 = #(IIC_MAX_POLL+1)
+
+       ; push lower 16 bits of AC0 and onto the stack
+       push(AC0)
+
+       ; set AR2 to the ICSTR register
+       AR2 = #ICSTR
+
+       ; start poll loop
+pollSetLoop
+       ; read and test status bit
+       AC0 = *AR2 || readport()
+       AC0 = AC0 & T0
+
+       ; if counter is not 0, loop
+       AC1 = AC1 - #1
+       if(AC1 == #0) goto pollSetError
+       if(AC0 == #0) goto pollSetLoop
+
+       ; return
+       T0 = #0
+       goto pollSetReturn
+
+       ; if error occurred, set to fail and return
+pollSetError
+       T0 = #1
+
+pollSetReturn
+       AC0 = pop()
+       return
+
+*********************************************************************
+* INTERNAL FUNCTION (only exposed to I2C asm functions)
+*
+* POLL_FOR_CLEAR
+*
+* This function polls the IIC module status register for a certain 
+* bit flag which is set in the calling function.  If the bit flag
+* is clear, the function returns success, if not, it continues polling
+* until success or timeout and returns an error if the function timed
+* out.
+*
+* Return Value:
+*       0 - success
+*       1 - failure
+*
+* Used Registers:
+*       T0 - status bit to check
+*
+*       AR2 - Pointer to I/O registers
+*       AC0 - scratch register
+*       AC1 - Counter for maximum poll attempts
+*
+* WORKAROUNDS: There seems to be a feature where the status register
+*       doesn't update correctly.  To obtain a correct result from the
+*       status register, it seems to need to be written with 0xFFFF before
+*       reads.
+*
+*********************************************************************
+POLL_FOR_CLEAR
+        ; set up number of poll attempts and return status
+        AC1 = #(IIC_MAX_POLL+1)
+
+        ; push lower 16 bits of AC0 onto the stack
+        push(AC0)
+
+        ; set AR2 to the ICSTR register
+        AR2 = #ICSTR
+
+        ; start the poll loop
+pollClearLoop
+        AC0 = *AR2 || readport()
+        AC0 = AC0 & T0
+
+        ; if count is 0, go to pollClearError
+        AC1 = AC1 - #1
+        if(AC1 == #0) goto pollClearError
+        if(AC0 != #0) goto pollClearLoop
+
+        ; return
+        T0 = #0
+        goto pollClearReturn
+
+        ; if error occurred, set to fail and return
+pollClearError
+        T0 = #1
+
+pollClearReturn
+        AC0 = pop()
+        return
+
+

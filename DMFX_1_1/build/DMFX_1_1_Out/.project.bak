@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>DMFX-1-1</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.rtsc.xdctools.buildDefinitions.XDC.xdcNature</nature>
+		<nature>com.ti.ccstudio.core.ccsNature</nature>
+		<nature>org.eclipse.cdt.core.cnature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>VC5505_CSL_BIOS_cfg.tcf</name>
+			<type>1</type>
+			<locationURI>COMMON_ROOT/build/VC5505_CSL_BIOS_cfg.tcf</locationURI>
+		</link>
+		<link>
+			<name>codec_aic3254.c</name>
+			<type>1</type>
+			<locationURI>COMMON_ROOT/src/codec_aic3254.c</locationURI>
+		</link>
+		<link>
+			<name>gpio_control.c</name>
+			<type>1</type>
+			<locationURI>COMMON_ROOT/src/gpio_control.c</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

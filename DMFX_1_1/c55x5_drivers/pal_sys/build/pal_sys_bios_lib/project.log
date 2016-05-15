@@ -1,0 +1,7 @@
+
+!CONFIGURATION: 'com.ti.ccstudio.buildDefinitions.C5500.Debug.378999123' [Wed Oct 14 22:30:16 CEST 2015]
+
+	!TOOL: 'com.ti.ccstudio.buildDefinitions.C5500_4.4.library.compilerDebug.612203122'
+
+		!WARNING: Unresolved option: com.ti.ccstudio.buildDefinitions.C5500_4.4.compilerID.LARGE_MEMORY_MODEL
+

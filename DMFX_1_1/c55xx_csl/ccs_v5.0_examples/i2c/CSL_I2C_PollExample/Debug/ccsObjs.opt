@@ -1,0 +1,1 @@
+"./csl_i2c_polled_example.obj" "../VC5505_I2C.cmd" -l"Debug/C55XXCSL_LP.lib" -l"rts55x.lib" -l"libc.a" 

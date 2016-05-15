@@ -1,0 +1,53 @@
+utils.loadPlatform("ti.platforms.evm5505");
+
+/* The following DSP/BIOS Features are enabled.  */
+bios.enableRealTimeAnalysis(prog);
+bios.enableRtdx(prog);
+bios.enableTskManager(prog);
+
+bios.GBL.MEMORYMODEL = "LARGE";
+bios.MEM.NOMEMORYHEAPS = 0;
+bios.MEM.ARGSSEG = prog.get("SARAM");
+bios.MEM.STACKSEG = prog.get("SARAM");
+bios.MEM.BSSSEG = prog.get("SARAM");
+bios.MEM.CONSTSEG = prog.get("SARAM");
+bios.MEM.DATASEG = prog.get("SARAM");
+bios.MEM.CIOSEG = prog.get("SARAM");
+bios.MEM.instance("SARAM").createHeap = 1;
+bios.MEM.BIOSOBJSEG = prog.get("SARAM");
+bios.MEM.MALLOCSEG = prog.get("SARAM");
+bios.MEM.SYSDATASEG = prog.get("SARAM");
+bios.MEM.OBJSEG = prog.get("SARAM");
+
+bios.PRD.USECLK = 0;
+bios.CLK.ENABLECLK = 0;
+bios.GBL.MODIFYCLKMD = 0;
+
+bios.MEM.STACKSIZE = 0x4096;
+bios.MEM.SYSSTACKSIZE = 0x1024;
+
+bios.TSK.create("receiveTsk");
+bios.TSK.instance("receiveTsk").order = 1;
+bios.TSK.instance("receiveTsk").priority = 7;
+bios.TSK.instance("receiveTsk").fxn = prog.extern("startReceivingData");
+bios.TSK.instance("receiveTsk").stackSize = 4096;
+bios.TSK.instance("receiveTsk").stackMemSeg = prog.get("SARAM");
+
+bios.TSK.create("sendTsk");
+bios.TSK.instance("sendTsk").order = 1;
+bios.TSK.instance("sendTsk").priority = 7;
+bios.TSK.instance("sendTsk").fxn = prog.extern("startSendingData");
+bios.TSK.instance("sendTsk").stackSize = 4096;
+bios.TSK.instance("sendTsk").stackMemSeg = prog.get("SARAM");
+
+bios.TSK.instance("TSK_idle").stackMemSeg = prog.get("SARAM");
+
+bios.SEM.create("readInputData");
+bios.SEM.instance("readInputData").comment = "Semaphore to receive Data from McBsp Registers";
+bios.SEM.create("sendOutputData");
+bios.SEM.instance("sendOutputData").comment = "Semaphore to send Data to McBsp Registers";
+
+// !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
+
+prog.gen();
+

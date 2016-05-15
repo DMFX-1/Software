@@ -1,0 +1,160 @@
+C55XCSL LOWPOWER Release Version 3.04.00.02
+
+Release Notes
+April 2014
+
+================================================================
+Table of Contents
+================================================================
+ 01. Overview,Known issues and Caveats  
+ 02. Bug ID 3322 - C5517 pll config has wrong sequence
+ 03. Bug ID 3684 - USB Controller does not return ACK on USB EP OUT packets
+ 04. Bug ID 5529 - To include clean.bin in programmer folder 
+ 05. Bug ID 5464 - Programmer Supports only upto 32bytes
+ 06. Bug ID 1370 - Programmer for C5517 EVM 
+ 07. Bug ID 679  - Linux installer for CSL package.
+ 08. Bug ID 2102 - USB 64 bit Host Boot for Windows 7
+ 09. Bug ID 6465 - ReadMe needs to be corrected for CSL_SPI_Example 
+ 10. Bug ID 6542 - CSL_WDT_Example - Example would disconnect at 200Mhz and cannot view the log whether it passed /Failed
+ 11. Bug ID 6033 - Incorrect EM_SDCLK Clock setting when Max Clock is <=100MHz
+ 12. Bug ID 6075 - CSLv3.03: csl_pll.c getSysClk() function modification w.r.t floating point arithmetic using float local variable Multiplier.
+
+
+================================================================
+ 01. Overview
+================================================================
+
+This release is an upgrade release of the C55XCSL LOWPOWER package including support for new features as well as fixes for reported defects. The purpose of this release is to fix the known bugs and make the CSL more reliable and more efficient in the Chip Support Library (CSL) software package for the 
+TMS320C5515/17/35 DSPs.
+
+This release provides the Chip Support Library (CSL), and related sample application Examples, for the TMS320C5517 (PG2.1) DSP, TMS320C5535 DSP and the TMS320C5504/05/14/15 (PG 2.0) DSPs with the exception of the peripherals that are exclusive to each DSP. For information about what peripherals are available, 
+see the data manual of the DSP. Most of the sample application examples work properly on the C5515 eZdsp USB Stick.
+
+Known Issues and Caveats
+========================
+
+a. As a whole, the set of Examples provided are currently designed to illustrate basic functionality of the related CSL functions upon which they call. As such, the currently provided Examples are, in general, not yet rigorously refined to demonstrate maximum system performance or robustness.
+
+b. The UART and some of the USB examples require the program HyperTerminal thatcomes with the Windows XP package. For Windows Vista and Windows 7 users, use an alternate program for the serial port such as TeraTerm. 
+
+c. The USB CDC driver is having stability issues with PCs running Microsoft Windows XP operating system. Users might see the error ‘Unable to open COM port’ when trying to connect using Hyper Terminal. CDC example works conditionally at high CPU clock (> 100MHz) and with USB hub connected between target board and host PC.
+
+d. Writing data to the LCD data register (LCDLIDDCS0DATA) using CSL_FINS does not work. But it works fine when data is written directly to the register like CSL_LCDC_REGS->LCDLIDDCS0DATA = data; or when CSL_FSET macro is used.
+
+e. Limitation of the USB endpoint test examples:
+USB endpoint examples and the USB host test tool are implemented to show case how to configure and use the CSL USB module at end point level, but they are not intended to demo full-fledged USB application.
+
+For any endpoint, first operation should be write which can be followed by several read operations. Reading data from an end point without writing data will result in timeout error for USB host tool
+
+Data size read from an end point should always be equal to the size of data written previously to that end point. 
+
+Read operation for an end point always returns data written previously to that end point
+
+Length of data that can be transferred on any end point for DMA mode example should be multiple of 4. Read/Write operations with data length other than multiple of 4 from host can result in unexpected behavior of the test. This limitation is applicable only for the DMA mode example.
+
+================================================================
+02. Bug ID - 3322 - pll config has wrong sequence
+================================================================
+C5517 requires a different sequence than C5515
+
+This bug has been fixed in CSL Release 3.04
+
+================================================================
+ 03. Bug ID 3684 - USB Controller does not return ACK on USB EP OUT packets
+================================================================
+The transmission channel, endpoint 2, is defined to operate in interrupt mode -> descriptor sent to the host, for In and Out
+
+The host (Out) sends a packet of 64 bytes to the C55 using endpoint 2
+The C55 acknowledges the reception of the 64 bytes ‘NYET’ but not ready to receive a new packet
+The host does not expect to receive a NYET from the device endpoint working in interrupt mode, it’s interpreted as an error and sends the same packet of 64bytes again. 
+
+This bug has been fixed in CSL Release 3.04
+
+================================================================
+04. Bug ID 5229 - Include clean.bin in programmer folder
+
+================================================================
+Included clean.bin in programmer folder 
+
+This has been fixed in CSL Release 3.04
+
+================================================================
+05. Bug ID 5464 - programmer supports SPI only up to 32kBytes 
+
+================================================================
+
+programmer in CSL 3.03 can only program file size up to 32kBytes. Best to be a variable for easy expansion
+
+This has been fixed in CSL Release 3.04
+
+
+================================================================
+06. Bug ID 1370 - Programmer for C5517 EVM 
+
+================================================================
+
+We need one programmer to program all boot peripherals on C5517 EVM.
+
+This has been fixed in CSL Release 3.04
+
+================================================================
+07. Bug ID 679 - Linux installer for CSL package. 
+
+================================================================
+
+CSL 3.04 has linux installer for CSL package.
+
+================================================================
+08. Bug ID 2102 - USB 64 bit Host Boot for Windows 7. 
+
+================================================================
+
+CSL 3.04 supports both 32 & 64 bit Host Boot support for windows 7.
+
+================================================================                              
+ 
+================================================================
+08. Bug ID 6465 - ReadMe needs to be corrected for CSL_SPI_Example
+
+================================================================              
+Readme Mentions SPI example code support for C5517 EVM , but on C5517 EVM EEPROM is replaced with FLASH. So the example code doesn't support C5517 EVM and this needs to be corrected
+
+================================================================
+ 09. Bug ID 6465 - ReadMe needs to be corrected for CSL_SPI_Example 
+================================================================
+Readme Mentions SPI example code support for C5517 EVM , but on C5517 EVM EEPROM is replaced with FLASH. So the example code doesn't support C5517 EVM and this needs to be corrected. 
+
+The example code supports SPI interface with EEPROM which exists with C5515 EVM. Readme needs to be changed.
+
+================================================================
+Bug 6542 - CSL_WDT_Example - Example would disconnect at 200Mhz and cannot view the log whether it passed /Failed
+================================================================
+
+For 200MHz CSL_WDT_Example - test target would disconnect after finishing, so I couldn't view the log to see if it passed. Can't Run Target CPU: Error 0x00000020/-1137 Error during: Execution, It appears that the target is being held in reset.  This may be due to Wait-In-Reset (WIR) configuration set by the EMU 0/1 pin settings.  If this is the case, press Cancel and disconnect all connected devices to attempt to clear the WIR configuration.
+
+================================================================
+Bug 6033 - Incorrect EM_SDCLK Clock setting when Max Clock is <=100MHz 
+================================================================
+
+The CSL function is written so that the EMIF can never be run at 100MHz. It looks like a logic bug that should use ‘>’ instead of ‘>=’ in CSL function “SDRAM_config()”. 
+================================================================
+
+================================================================
+Bug 6075 - csl_pll.c getSysClk() function modification w.r.t floating point arithmetic using float local variable Multiplier 
+================================================================
+
+Modification required to pll.c function getSysclk() for greater accuracy in System clock calculation:
+
+float Multiplier;
+    ...
+    ..
+    .
+    Multiplier = temp1/256 +1;
+ 
+Change the statement above to
+ 
+    Multiplier = temp1/256.0 +1;
+ 
+Multiplier is defined as a float, but the original 3.03 csl code doesn't take into account it's 'float' nature as rvalue, i.e. all parameters on the right-hand side of the equal-to sign: temp1, 256 and 1 are unsigned integers and all arithmetic here truncates and restricts the float variable 'Multiplier' to fewer values than are actually possible. And hence getsysclk() returns a system frequency that is somewhat less accurate.Changing the denominator 256 to 256.0 will result in greater accuracy for calculated sysclk.
+
+================================================================
