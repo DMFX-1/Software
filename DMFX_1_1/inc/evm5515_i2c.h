@@ -21,45 +21,30 @@
  * ============================================================================
  */
 
-/* Standard Types File: [last revised: 2004-01-14] */
-
-#ifndef _TISTDTYPES_H_
-#define _TISTDTYPES_H_
-
 /*
-    The purpose of this header file is to consolidate all the primitive "C"
-    data types into one file. This file is expected to be included in the
-    basic types file exported by other software components, for example CSL.
+ *  I2C header file
+ *
  */
 
-#ifndef _TI_STD_TYPES
-#define _TI_STD_TYPES
+#ifndef I2C_
+#define I2C_
 
-#ifndef TRUE
+#include "evm5515.h"
 
-typedef int		Bool;
-#define TRUE		((Bool) 1)
-#define FALSE		((Bool) 0)
+#define MDR_STT			0x2000
+#define MDR_TRX			0x0200
+#define MDR_MST			0x0400
+#define MDR_IRS			0x0020
+#define MDR_FREE		0x4000
+#define STR_XRDY		0x0010
+#define STR_RRDY		0x0008
+#define MDR_STP 		0x0800
+/* ------------------------------------------------------------------------ *
+ *  Prototypes                                                              *
+ * ------------------------------------------------------------------------ */
+Int16 EVM5515_I2C_init ( );
+Int16 EVM5515_I2C_close( );
+Int16 EVM5515_I2C_read( Uint16 i2c_addr, Uint8* data, Uint16 len );
+Int16 EVM5515_I2C_write( Uint16 i2c_addr, Uint8* data, Uint16 len );
 
 #endif
-
-typedef int             Int;
-typedef unsigned int    Uns;    /* deprecated type */
-typedef char            Char;
-typedef char *          String;
-typedef void *          Ptr;
-
-typedef unsigned long	Uint32;
-typedef unsigned short	Uint16;
-typedef unsigned char	Uint8;
-
- /* Signed integer definitions (32bit, 16bit, 8bit) follow... */
-typedef long		Int32;
-typedef short		Int16;
-typedef char		Int8;
-
-#endif /* _TI_STD_TYPES */
-
-
-#endif /* _TISTDTYPES_H_ */
-
