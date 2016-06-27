@@ -10,10 +10,10 @@ GBL_USERINITFXN = _FXN_F_nop;
 -u _FXN_F_nop
 GBL_BIOS_BOOTFXN = _FXN_F_nop;
 
--u MEM_NULL
-MEM_SEGZERO = MEM_NULL;
--u MEM_NULL
-MEM_MALLOCSEG = MEM_NULL;
+-u SARAM
+MEM_SEGZERO = SARAM;
+-u SARAM
+MEM_MALLOCSEG = SARAM;
 
 -u _CLK_isr
 CLK_TIMER0FUNC = _CLK_isr;
@@ -370,6 +370,12 @@ SECTIONS {
          .const: {} 
          .printf (COPY): {} 
         } > SARAM PAGE 0
+
+        .SARAM$heap: RUN_START(SARAM$Bb), RUN_START(_SARAM_baseb), RUN_SIZE(SARAM$L), RUN_SIZE(_SARAM_length) {
+            . += 0x1b100;
+            SARAM$B = SARAM$Bb / 2;
+            _SARAM_base = _SARAM_baseb / 2;
+        }  > SARAM PAGE 0
 
         /* trace buffer */
         .trace$buf: block(0x20000) align = 0x1000 {} > SARAM31 PAGE 0

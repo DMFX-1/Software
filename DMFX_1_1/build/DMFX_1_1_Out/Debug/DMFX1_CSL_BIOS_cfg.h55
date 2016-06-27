@@ -109,7 +109,7 @@ GBL_TRCMASKVALUE    .set 0dbefH
 GBL_CALLCSLCFGINIT  .set 00H
 GBL_DCRPOSTEDWRITE  .set 01H
 MEM$                .set 1
-MEM_gNumHeap        .set 00H
+MEM_gNumHeap        .set 01H
 OBJ$                .set 0
 BUF$                .set 0
 BUF_ENABLED         .set 01H

@@ -93,7 +93,11 @@ src/app_audio_alg.obj: C:/c55/DMFX_1_1/inc/clean.h
 src/app_audio_alg.obj: C:/c55/DMFX_1_1/src/compressor.h
 src/app_audio_alg.obj: C:/c55/DMFX_1_1/inc/equalizer.h
 src/app_audio_alg.obj: C:/c55/DMFX_1_1/inc/phaser.h
+src/app_audio_alg.obj: C:/c55/DMFX_1_1/inc/flanger.h
 src/app_audio_alg.obj: C:/c55/DMFX_1_1/inc/variabledelay.h
+src/app_audio_alg.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdio.h
+src/app_audio_alg.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdarg.h
+src/app_audio_alg.obj: C:/c55/DMFX_1_1/inc/reverb.h
 
 C:/c55/DMFX_1_1/src/app_audio_alg.c: 
 C:/ti/bios_5_42_01_09/packages/ti/bios/include/std.h: 
@@ -188,4 +192,8 @@ C:/c55/DMFX_1_1/inc/clean.h:
 C:/c55/DMFX_1_1/src/compressor.h: 
 C:/c55/DMFX_1_1/inc/equalizer.h: 
 C:/c55/DMFX_1_1/inc/phaser.h: 
+C:/c55/DMFX_1_1/inc/flanger.h: 
 C:/c55/DMFX_1_1/inc/variabledelay.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdio.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdarg.h: 
+C:/c55/DMFX_1_1/inc/reverb.h: 

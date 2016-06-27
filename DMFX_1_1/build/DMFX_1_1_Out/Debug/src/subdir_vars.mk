@@ -11,11 +11,13 @@ C:/c55/DMFX_1_1/src/compressor.c \
 C:/c55/DMFX_1_1/src/csl_i2c_intc.c \
 C:/c55/DMFX_1_1/src/csl_sar_intc.c \
 C:/c55/DMFX_1_1/src/equalizer.c \
+C:/c55/DMFX_1_1/src/flanger.c \
 C:/c55/DMFX_1_1/src/gpio_control.c \
 C:/c55/DMFX_1_1/src/i2s_sample.c \
 C:/c55/DMFX_1_1/src/main.c \
 C:/c55/DMFX_1_1/src/phaser.c \
 C:/c55/DMFX_1_1/src/pll_control.c \
+C:/c55/DMFX_1_1/src/reverb.c \
 C:/c55/DMFX_1_1/src/variabledelay.c 
 
 OBJS += \
@@ -26,11 +28,13 @@ OBJS += \
 ./src/csl_i2c_intc.obj \
 ./src/csl_sar_intc.obj \
 ./src/equalizer.obj \
+./src/flanger.obj \
 ./src/gpio_control.obj \
 ./src/i2s_sample.obj \
 ./src/main.obj \
 ./src/phaser.obj \
 ./src/pll_control.obj \
+./src/reverb.obj \
 ./src/variabledelay.obj 
 
 C_DEPS += \
@@ -41,11 +45,13 @@ C_DEPS += \
 ./src/csl_i2c_intc.pp \
 ./src/csl_sar_intc.pp \
 ./src/equalizer.pp \
+./src/flanger.pp \
 ./src/gpio_control.pp \
 ./src/i2s_sample.pp \
 ./src/main.pp \
 ./src/phaser.pp \
 ./src/pll_control.pp \
+./src/reverb.pp \
 ./src/variabledelay.pp 
 
 C_DEPS__QUOTED += \
@@ -56,11 +62,13 @@ C_DEPS__QUOTED += \
 "src\csl_i2c_intc.pp" \
 "src\csl_sar_intc.pp" \
 "src\equalizer.pp" \
+"src\flanger.pp" \
 "src\gpio_control.pp" \
 "src\i2s_sample.pp" \
 "src\main.pp" \
 "src\phaser.pp" \
 "src\pll_control.pp" \
+"src\reverb.pp" \
 "src\variabledelay.pp" 
 
 OBJS__QUOTED += \
@@ -71,11 +79,13 @@ OBJS__QUOTED += \
 "src\csl_i2c_intc.obj" \
 "src\csl_sar_intc.obj" \
 "src\equalizer.obj" \
+"src\flanger.obj" \
 "src\gpio_control.obj" \
 "src\i2s_sample.obj" \
 "src\main.obj" \
 "src\phaser.obj" \
 "src\pll_control.obj" \
+"src\reverb.obj" \
 "src\variabledelay.obj" 
 
 C_SRCS__QUOTED += \
@@ -86,11 +96,13 @@ C_SRCS__QUOTED += \
 "C:/c55/DMFX_1_1/src/csl_i2c_intc.c" \
 "C:/c55/DMFX_1_1/src/csl_sar_intc.c" \
 "C:/c55/DMFX_1_1/src/equalizer.c" \
+"C:/c55/DMFX_1_1/src/flanger.c" \
 "C:/c55/DMFX_1_1/src/gpio_control.c" \
 "C:/c55/DMFX_1_1/src/i2s_sample.c" \
 "C:/c55/DMFX_1_1/src/main.c" \
 "C:/c55/DMFX_1_1/src/phaser.c" \
 "C:/c55/DMFX_1_1/src/pll_control.c" \
+"C:/c55/DMFX_1_1/src/reverb.c" \
 "C:/c55/DMFX_1_1/src/variabledelay.c" 
 
 

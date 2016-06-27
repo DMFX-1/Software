@@ -19,12 +19,12 @@ bios.MEM.STACKSIZE = 0x1000;
 bios.MEM.SYSSTACKSIZE = 0x0800;
 bios.MEM.NOMEMORYHEAPS = 1;
 //////////////////  BIOS DATA //////////////////
-//bios.MEM.ARGSSEG = prog.get("DARAM");
-//bios.MEM.STACKSEG = prog.get("DARAM");
+bios.MEM.ARGSSEG = prog.get("DARAM");
+bios.MEM.STACKSEG = prog.get("DARAM");
 bios.MEM.GBLINITSEG = prog.get("DARAM");
 bios.MEM.TRCDATASEG = prog.get("DARAM");
-//bios.MEM.SYSDATASEG = prog.get("DARAM");
-//bios.MEM.OBJSEG = prog.get("DARAM");
+bios.MEM.SYSDATASEG = prog.get("DARAM");
+bios.MEM.OBJSEG = prog.get("DARAM");
 //////////////////  BIOS CODE //////////////////
 bios.MEM.BIOSSEG = prog.get("SARAM");
 //bios.MEM.BIOSOBJSEG = prog.get("SARAM");
@@ -40,7 +40,7 @@ bios.MEM.CINITSEG = prog.get("DARAM");
 bios.MEM.PINITSEG = prog.get("DARAM");
 bios.MEM.CONSTSEG = prog.get("SARAM");
 bios.MEM.DATASEG = prog.get("SARAM");
-//bios.MEM.CIOSEG = prog.get("DARAM");
+bios.MEM.CIOSEG = prog.get("DARAM");
 //bios.MEM.MALLOCSEG = prog.get("SARAM");
 //bios.MEM.MALLOCSEG = prog.get("DARAM");
 //bios.MEM.REUSECODESPACE = 0;
@@ -221,6 +221,19 @@ bios.PRD.create("PRD0");
 bios.PRD.instance("PRD0").order = 1;
 bios.CLK.HIRESTIME = 1;
 bios.PRD.instance("PRD0").period = 1;
+//bios.MEM.BIOSSEG = prog.get("DARAM");
+//bios.MEM.SYSINITSEG = prog.get("DARAM");
+bios.MEM.NOMEMORYHEAPS = 0;
+bios.MEM.instance("SARAM").createHeap = 1;
+bios.MEM.instance("SARAM").heapSize = 0xd880;
+bios.MEM.instance("SARAM").enableHeapLabel = 0;
+//bios.MEM.instance("DARAM").space = "data";
+//bios.MEM.instance("DARAM").createHeap = 1;
+///bios.MEM.instance("DARAM").heapSize = 0x07d0;
+bios.MEM.MALLOCSEG = prog.get("SARAM");
+bios.MEM.BIOSOBJSEG = prog.get("SARAM");
+//bios.MEM.instance("SARAM").enableHeapLabel = 0;
+//bios.MEM.instance("SARAM").heapLabel = prog.extern("dlybuf");
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 prog.gen();

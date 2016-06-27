@@ -5,7 +5,7 @@
 ;; INPUT DMFX1_CSL_BIOS_.cdb
 
 ;; CONFIGURATION/VERSION INFORMATION
-	.asg "Wed May 04 23:59:51 2016", VERS$DATE
+	.asg "Thu Jun 23 19:42:12 2016", VERS$DATE
 
 ;; PROLOGUE
 	.include DMFX1_CSL_BIOS_cfg.h55
@@ -359,9 +359,9 @@ HOOK$SETOF          .set 00H
 	GBL_config  _ROM, _PROCID, _CLKIN, _FREQ, _DSPTYPE, _DSPSUBTYPE, _CLKTYPE, _MODIFYCLKMD, _CLKMD, _PLLM, _PLLDIV0, _PLLDIV1, _USERINIT, _USERINITFXN, _ENABLEINST, _LARGEMODEL, _ENABLEICACHE, _CACHETYPE, _CACHEICRTAG1, _CACHEICRTAG2, _SUPPORTCSL, _TRCMASKVALUE, _CALLCSLCFGINIT, _BIOS_BOOTFXN, _DCRPOSTEDWRITE
 
 ;; ======== MEM_config ========
-	.asg 00H, _gNumHeap
-	.asg MEM_NULL, _SEGZERO
-	.asg MEM_NULL, _MALLOCSEG
+	.asg 01H, _gNumHeap
+	.asg SARAM, _SEGZERO
+	.asg SARAM, _MALLOCSEG
 	MEM_config  _gNumHeap, _SEGZERO, _MALLOCSEG
 
 ;; ======== OBJ_config ========
@@ -563,7 +563,7 @@ HOOK$SETOF          .set 00H
 	.global VECT
 	.asg 080H, _len
 	.asg 00H, _iAllocHeap
-	.asg MEM_NULL, _iSegZero
+	.asg SARAM, _iSegZero
 	.asg segment_name, _iHeapId
 	MEM_Obj 1, VECT, 0, _len, _iAllocHeap, _iSegZero, _iHeapId
 
@@ -574,7 +574,7 @@ HOOK$SETOF          .set 00H
 	.global DARAM
 	.asg 07f20H, _len
 	.asg 00H, _iAllocHeap
-	.asg MEM_NULL, _iSegZero
+	.asg SARAM, _iSegZero
 	.asg segment_name, _iHeapId
 	MEM_Obj 1, DARAM, 0, _len, _iAllocHeap, _iSegZero, _iHeapId
 
@@ -584,8 +584,8 @@ HOOK$SETOF          .set 00H
 ;; MEM_Obj SARAM (len, iAllocHeap, iSegZero, iHeapId)
 	.global SARAM
 	.asg 01ef80H, _len
-	.asg 00H, _iAllocHeap
-	.asg MEM_NULL, _iSegZero
+	.asg 01H, _iAllocHeap
+	.asg SARAM, _iSegZero
 	.asg segment_name, _iHeapId
 	MEM_Obj 1, SARAM, 0, _len, _iAllocHeap, _iSegZero, _iHeapId
 
@@ -596,7 +596,7 @@ HOOK$SETOF          .set 00H
 	.global SARAM31
 	.asg 01000H, _len
 	.asg 00H, _iAllocHeap
-	.asg MEM_NULL, _iSegZero
+	.asg SARAM, _iSegZero
 	.asg segment_name, _iHeapId
 	MEM_Obj 1, SARAM31, 0, _len, _iAllocHeap, _iSegZero, _iHeapId
 

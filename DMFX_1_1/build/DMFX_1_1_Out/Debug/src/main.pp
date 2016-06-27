@@ -105,6 +105,10 @@ src/main.obj: C:/ti/bios_5_42_01_09/packages/ti/bios/include/_log.h
 src/main.obj: C:/ti/bios_5_42_01_09/packages/ti/bios/include/trc.h
 src/main.obj: C:/c55/DMFX_1_1/inc/DMFX_debug.h
 src/main.obj: C:/c55/DMFX_1_1/inc/fxcmd.h
+src/main.obj: C:/c55/DMFX_1_1/inc/variabledelay.h
+src/main.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdio.h
+src/main.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdarg.h
+src/main.obj: C:/c55/DMFX_1_1/inc/reverb.h
 
 C:/c55/DMFX_1_1/src/main.c: 
 C:/c55/DMFX_1_1/inc/DMFX1.h: 
@@ -211,3 +215,7 @@ C:/ti/bios_5_42_01_09/packages/ti/bios/include/_log.h:
 C:/ti/bios_5_42_01_09/packages/ti/bios/include/trc.h: 
 C:/c55/DMFX_1_1/inc/DMFX_debug.h: 
 C:/c55/DMFX_1_1/inc/fxcmd.h: 
+C:/c55/DMFX_1_1/inc/variabledelay.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdio.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdarg.h: 
+C:/c55/DMFX_1_1/inc/reverb.h: 

@@ -70,6 +70,10 @@ src/csl_i2c_intc.obj: C:/ti/bios_5_42_01_09/packages/ti/bios/include/clk.h
 src/csl_i2c_intc.obj: C:/c55/DMFX_1_1/inc/dsp_fx.h
 src/csl_i2c_intc.obj: C:/c55/DMFX_1_1/inc/csl_i2c_intc.h
 src/csl_i2c_intc.obj: C:/c55/DMFX_1_1/inc/equalizer.h
+src/csl_i2c_intc.obj: C:/c55/DMFX_1_1/inc/variabledelay.h
+src/csl_i2c_intc.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdio.h
+src/csl_i2c_intc.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/linkage.h
+src/csl_i2c_intc.obj: C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdarg.h
 
 C:/c55/DMFX_1_1/src/csl_i2c_intc.c: 
 C:/c55/DMFX_1_1/inc/DMFX1.h: 
@@ -141,3 +145,7 @@ C:/ti/bios_5_42_01_09/packages/ti/bios/include/clk.h:
 C:/c55/DMFX_1_1/inc/dsp_fx.h: 
 C:/c55/DMFX_1_1/inc/csl_i2c_intc.h: 
 C:/c55/DMFX_1_1/inc/equalizer.h: 
+C:/c55/DMFX_1_1/inc/variabledelay.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdio.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/linkage.h: 
+C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include/stdarg.h: 

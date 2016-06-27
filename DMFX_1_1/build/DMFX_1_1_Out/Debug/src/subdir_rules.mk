@@ -52,6 +52,13 @@ src/equalizer.obj: C:/c55/DMFX_1_1/src/equalizer.c $(GEN_OPTS) $(GEN_HDRS)
 	@echo 'Finished building: $<'
 	@echo ' '
 
+src/flanger.obj: C:/c55/DMFX_1_1/src/flanger.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: C5500 Compiler'
+	"C:/ti/ccsv5/tools/compiler/c5500_4.4.1/bin/cl55" -v5535 --memory_model=large -O3 -g --include_path="C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include" --include_path="C:/c55/DMFX_1_1/inc" --include_path="C:/c55/DMFX_1_1/build/DMFX_1_1_Out/Debug" --include_path="C:/c55/DMFX_1_1/c55xx_csl/inc" --include_path="C:/ti/bios_5_42_01_09/packages/ti/bios/include" --include_path="C:/ti/bios_5_42_01_09/packages/ti/rtdx/include/c5500" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/dma/inc" --include_path="C:/c55/DMFX_1_1/dsplib/inc" --include_path="C:/c55/DMFX_1_1/asrc/inc" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/inc" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/i2c/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/i2s/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_os/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_sys/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_os/src/bios/src/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_sys/da225/src/" --gcc --define="_DEBUG" --define=BIOS_BUILD --define=CSL_AC_TEST --define=C5535_EZDSP_DEMO --define=c5535 --display_error_number --diag_warning=225 --ptrdiff_size=16 --algebraic --preproc_with_compile --preproc_dependency="src/flanger.pp" --obj_directory="src" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
 src/gpio_control.obj: C:/c55/DMFX_1_1/src/gpio_control.c $(GEN_OPTS) $(GEN_HDRS)
 	@echo 'Building file: $<'
 	@echo 'Invoking: C5500 Compiler'
@@ -84,6 +91,13 @@ src/pll_control.obj: C:/c55/DMFX_1_1/src/pll_control.c $(GEN_OPTS) $(GEN_HDRS)
 	@echo 'Building file: $<'
 	@echo 'Invoking: C5500 Compiler'
 	"C:/ti/ccsv5/tools/compiler/c5500_4.4.1/bin/cl55" -v5535 --memory_model=large -O3 -g --include_path="C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include" --include_path="C:/c55/DMFX_1_1/inc" --include_path="C:/c55/DMFX_1_1/build/DMFX_1_1_Out/Debug" --include_path="C:/c55/DMFX_1_1/c55xx_csl/inc" --include_path="C:/ti/bios_5_42_01_09/packages/ti/bios/include" --include_path="C:/ti/bios_5_42_01_09/packages/ti/rtdx/include/c5500" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/dma/inc" --include_path="C:/c55/DMFX_1_1/dsplib/inc" --include_path="C:/c55/DMFX_1_1/asrc/inc" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/inc" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/i2c/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/i2s/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_os/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_sys/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_os/src/bios/src/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_sys/da225/src/" --gcc --define="_DEBUG" --define=BIOS_BUILD --define=CSL_AC_TEST --define=C5535_EZDSP_DEMO --define=c5535 --display_error_number --diag_warning=225 --ptrdiff_size=16 --algebraic --preproc_with_compile --preproc_dependency="src/pll_control.pp" --obj_directory="src" $(GEN_OPTS__FLAG) "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+src/reverb.obj: C:/c55/DMFX_1_1/src/reverb.c $(GEN_OPTS) $(GEN_HDRS)
+	@echo 'Building file: $<'
+	@echo 'Invoking: C5500 Compiler'
+	"C:/ti/ccsv5/tools/compiler/c5500_4.4.1/bin/cl55" -v5535 --memory_model=large -O3 -g --include_path="C:/ti/ccsv5/tools/compiler/c5500_4.4.1/include" --include_path="C:/c55/DMFX_1_1/inc" --include_path="C:/c55/DMFX_1_1/build/DMFX_1_1_Out/Debug" --include_path="C:/c55/DMFX_1_1/c55xx_csl/inc" --include_path="C:/ti/bios_5_42_01_09/packages/ti/bios/include" --include_path="C:/ti/bios_5_42_01_09/packages/ti/rtdx/include/c5500" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/dma/inc" --include_path="C:/c55/DMFX_1_1/dsplib/inc" --include_path="C:/c55/DMFX_1_1/asrc/inc" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/inc" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/i2c/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/i2s/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_os/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_sys/inc/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_os/src/bios/src/" --include_path="C:/c55/DMFX_1_1/c55x5_drivers/pal_sys/da225/src/" --gcc --define="_DEBUG" --define=BIOS_BUILD --define=CSL_AC_TEST --define=C5535_EZDSP_DEMO --define=c5535 --display_error_number --diag_warning=225 --ptrdiff_size=16 --algebraic --preproc_with_compile --preproc_dependency="src/reverb.pp" --obj_directory="src" $(GEN_OPTS__FLAG) "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
