@@ -175,10 +175,10 @@ void I2c_Intc_MasterTx(void)
         //SEM_pend(&SEM_Menu, SYS_FOREVER);
 		for(i = 0; i < CSL_I2C_DATA_SIZE; i++)
 		{
-			if(FxCmd[i] !=  gI2cWrBuf[i+2])
+			if(FxCmd[i] !=  gI2cWrBuf[i+CSL_EEPROM_ADDR_SIZE])
 			{
 				FxChanges = 1;
-				gI2cWrBuf[i+2] = FxCmd[i];
+				gI2cWrBuf[i+CSL_EEPROM_ADDR_SIZE] = FxCmd[i];
 			}
 		}
 		if(FxChanges)

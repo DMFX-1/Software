@@ -46,7 +46,6 @@
 #include "DMFX_debug.h"
 #include "tuner.h"
 #include "dsp_fx.h"
-#include "fxcmd.h"
 
 /************************************************************************/
 /* ST7565 LCD Connection								                */
@@ -60,6 +59,7 @@ extern Uint16 		NavigatorButton;  // Stores last Navigator button pressed
 extern Uint16 		chanNo;			  // SAR Channel number 0-3 or 2-3
 extern CSL_SarHandleObj *SarHandle;   // SAR handle
 extern volatile char	NoiseSup_on;
+extern Uint16 FxCmd[FXCMD_SIZE];
 
 /* Global position storage for the Cursor */
 static Uint16 gw_row = 0;
@@ -235,20 +235,28 @@ ContextMenu_t MenuChorus [5] = {
 	{"5  Stereo       ", &MenuTop[10], &MenuChorus_Stereo[0], &MenuChorus[0], &MenuChorus[3], CH_STEREO, 3}   	//=> Stereo:   	  Default Mono
 };
 ContextMenu_t MenuChorusType[2] = {
-	{"1  Indus Std   ",  &MenuChorus[0], NULL,   &MenuChorusType[1], &MenuChorusType[1], CH_TYPE_LIST, 1},  //=> Industrial Standard Chorus:   1
-	{"2  White       ",  &MenuChorus[0], NULL,   &MenuChorusType[0], &MenuChorusType[0], CH_TYPE_LIST, 2}    //=> White Chorus:   			    2
+	{"1  Indus Std   ",  &MenuChorus[0], NULL,   &MenuChorusType[1], &MenuChorusType[1], CH_TYPE_LIST, 1},  	//=> Industrial Standard Chorus:   1
+	{"2  White       ",  &MenuChorus[0], NULL,   &MenuChorusType[0], &MenuChorusType[0], CH_TYPE_LIST, 2}    	//=> White Chorus:  			   2
 };
 
 ContextMenu_t MenuChorus_Stereo [3] = {
 	{"1  Mono        ", &MenuChorus[4], NULL,  &MenuChorus_Stereo[1], &MenuChorus_Stereo[2], CH_STEREO_LIST, 1},  //=> Mono 	1
 	{"2  Stereo      ", &MenuChorus[4], NULL,  &MenuChorus_Stereo[2], &MenuChorus_Stereo[0], CH_STEREO_LIST, 2},  //=> Stereo	2
-	{"3  Leslie      ", &MenuChorus[4], NULL,  &MenuChorus_Stereo[0], &MenuChorus_Stereo[1], CH_STEREO_LIST, 3}   //=> Leslie 3
+	{"3  Leslie      ", &MenuChorus[4], NULL,  &MenuChorus_Stereo[0], &MenuChorus_Stereo[1], CH_STEREO_LIST, 3}   //=> Leslie   3
 };
 
-ContextMenu_t MenuFlanger [3] = {
-	{"1  Rate         ", &MenuTop[11], &MenuPot[0], &MenuFlanger[1], &MenuFlanger[2], FL_RATE, 128},	//=> Rate:   	  Potvalue 0-255
-	{"2  Depth        ", &MenuTop[11], &MenuPot[0], &MenuFlanger[2], &MenuFlanger[0], FL_DEPTH, 255},	//=> Depth:   	  Potvalue 0-255
-	{"3  Delay        ", &MenuTop[11], &MenuPot[0], &MenuFlanger[0], &MenuFlanger[1], FL_DELAY, 255}	//=> Delay:   	  Potvalue 0-255
+ContextMenu_t MenuFlanger [6] = {
+	{"1  Rate         ", &MenuTop[11], &MenuPot[0], 	  &MenuFlanger[1], &MenuFlanger[5], FL_RATE, 128},			//=> Rate:   	  Potvalue 0-255
+	{"2  Depth        ", &MenuTop[11], &MenuPot[0], 	  &MenuFlanger[2], &MenuFlanger[0], FL_DEPTH, 255},			//=> Depth:   	  Potvalue 0-255
+	{"3  Delay        ", &MenuTop[11], &MenuPot[0], 	  &MenuFlanger[3], &MenuFlanger[1], FL_DELAY, 255},			//=> Delay:   	  Potvalue 0-255
+	{"4  Resonance    ", &MenuTop[11], &MenuPot[0], 	  &MenuFlanger[4], &MenuFlanger[2], FL_RESONANCE, 255},		//=> Resonance:   Potvalue 0-255
+	{"5  Mono/Stereo  ", &MenuTop[11], &MenuFl_Stereo[0], &MenuFlanger[5], &MenuFlanger[3], FL_STEREO, 1},	    	//=> Stereo:   	  Default Mono
+	{"6  Notches      ", &MenuTop[11], &MenuPot[0], 	  &MenuFlanger[0], &MenuFlanger[4], FL_NOTCHES, 12}	    	//=> Notches:     1 - 12
+};
+ContextMenu_t MenuFl_Stereo [3] = {
+	{"1  Mono        ", &MenuFlanger[4], NULL,  &MenuFl_Stereo[1], &MenuFl_Stereo[2], FL_STEREO_LIST, 1},  //=> Mono 	1
+	{"2  Stereo      ", &MenuFlanger[4], NULL,  &MenuFl_Stereo[2], &MenuFl_Stereo[0], FL_STEREO_LIST, 2},  //=> Stereo	2
+	{"3  Leslie      ", &MenuFlanger[4], NULL,  &MenuFl_Stereo[0], &MenuFl_Stereo[1], FL_STEREO_LIST, 3},  //=> Leslie 	3
 };
 ContextMenu_t MenuPhShift [3] = {
 	{"1  Pitch        ", &MenuTop[12], &MenuPot[0], &MenuPhShift[1], &MenuPhShift[2], PITCH_VAL, 255},	//=> Pitch:   	  Potvalue 0-255
@@ -260,18 +268,20 @@ ContextMenu_t MenuTremolo [3] = {
 	{"2  Depth        ", &MenuTop[13], &MenuPot[0], &MenuTremolo[2], &MenuTremolo[0], TR_DEPTH, 255},	//=> Depth:   	  Potvalue 0-255
 	{"3  Delay        ", &MenuTop[13], &MenuPot[0], &MenuTremolo[0], &MenuTremolo[1], TR_DELAY, 255}	//=> Resonance:   Potvalue 0-255
 };
-ContextMenu_t MenuReverb [3] = {
-	{"1  Type         ", &MenuTop[14], &MenuRevType[0], &MenuReverb[1], &MenuReverb[2], REV_TYPE, 1},
-	{"2  Time         ", &MenuTop[14], &MenuPot[0],     &MenuReverb[2], &MenuReverb[0], REV_TIME, 255}, 	 //=> Time:   	  Potvalue 0-255
-	{"3  Effect level ", &MenuTop[14], &MenuPot[0],     &MenuReverb[0], &MenuReverb[1], REV_FXLEVEL, 255}	 //=> Level FX:   Potvalue 0-255
+ContextMenu_t MenuReverb [4] = {
+	{"1  Delay        ", &MenuTop[14], &MenuPot[0], &MenuReverb[1], &MenuReverb[3], REV_DELAY, 255},  //=> Delay:  	  	Potvalue 0-255
+	{"2  Dry Level    ", &MenuTop[14], &MenuPot[0], &MenuReverb[2], &MenuReverb[0], REV_DRY, 255}, 	  //=> Dry Level:	Potvalue 0-255
+	{"3  Early Level  ", &MenuTop[14], &MenuPot[0], &MenuReverb[3], &MenuReverb[1], REV_EARLY, 255},  //=> Early Level: Potvalue 0-255
+	{"4  Late Level   ", &MenuTop[14], &MenuPot[0], &MenuReverb[0], &MenuReverb[2], REV_LATE, 255}	  //=> Late Level:  Potvalue 0-255
 };
-
+#if 0
 ContextMenu_t MenuRevType [4] = {
 	{"1  Room        ", &MenuReverb[0], NULL,  &MenuRevType[1], &MenuRevType[3], REV_TYPE_LIST, 1},  //=> Room 	 1
 	{"2  Hall        ", &MenuReverb[0], NULL,  &MenuRevType[2], &MenuRevType[0], REV_TYPE_LIST, 2},  //=> Hall 	 2
 	{"3  Stadium     ", &MenuReverb[0], NULL,  &MenuRevType[3], &MenuRevType[1], REV_TYPE_LIST, 3},  //=> Stadium 	 3
 	{"4  Cathedral   ", &MenuReverb[0], NULL,  &MenuRevType[0], &MenuRevType[2], REV_TYPE_LIST, 4}   //=> Cathedral 4
 };
+#endif
 
 ContextMenu_t MenuTuner [1] = {
 	{"", &MenuTop[0], NULL, &MenuTuner[0], &MenuTuner[0], 0x0, 255}
@@ -296,7 +306,7 @@ ContextMenu_t MenuPot [POTENTIOMETER] = {
 };
 
 char Notes[SCALE_SIZE+4][4] = {
-    "    ", "    ", "C#5 ", "D3  ", "D#3 ",
+    "    ", "    ", "C#1 ", "D1  ", "D#1 ",
 	"E1  ", "F1  ", "F#1 ", "G1  ", "G#1 ",
 	"A2  ", "A#2 ", "B2  ", "C2  ", "C#2 ",
 	"D3  ", "D#3 ", "E3  ", "F3  ", "F#3 ",
@@ -844,10 +854,10 @@ lcd_printdisplay(CSL_SpiHandle hSpi)
 		pCtx = LcdCtx->LeftContext;
 		MenuPot[0].LeftContext = pCtx;
 		Label[0] = &(pCtx->MenuStr[3]);				//skips "#  " in the string
-		if (pCtx == &MenuPhShift[0])
+		if ((pCtx == &MenuPhShift[0])||(pCtx == &MenuFlanger[5]))
 		{
 			Step[0] = 12;
-			FxCmd[pCtx->Cmd] =  (SarData[2]+6)/20;
+			FxCmd[pCtx->Cmd] =  SarData[2]/21;
 		}
 		else if ((pCtx == &MenuEqParam[0])||(pCtx == &MenuEqParam[1])||(pCtx == &MenuEqParam[2])||(pCtx == &MenuEqParam[3]))
 		{
@@ -951,10 +961,10 @@ lcd_printdisplay(CSL_SpiHandle hSpi)
 			pCtx = LcdCtx;
 			MenuPot[0].LeftContext = pCtx;
 			Label[0] = &(pCtx->MenuStr[3]);				//skips "#  " in the string
-			if (pCtx == &MenuPhShift[0])
+			if ((pCtx == &MenuPhShift[0])||(pCtx == &MenuFlanger[5]))
 			{
 				Step[0] = 12;
-				FxCmd[pCtx->Cmd] =  (SarData[2]+6)*12/1020;
+				FxCmd[pCtx->Cmd] =  SarData[2]/21;
 			}
 			else if ((pCtx == &MenuEqParam[0])||(pCtx == &MenuEqParam[1])||(pCtx == &MenuEqParam[2])||(pCtx == &MenuEqParam[3]))
 			{

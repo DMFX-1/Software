@@ -41,6 +41,7 @@
 #include "csl_gpio_intc.h"
 #include "csl_i2c_intc.h"
 #include "DMFX_debug.h"
+#include "fxcmd.h"
 
 // main task DMFX2
 void DMFX2(void);
@@ -60,7 +61,9 @@ void I2c_Intc_MasterTx(void);
 //int gpio_int_test(void);
 // SAR read voltage from potentiometers
 //int  sar_pot_init(void);
-extern Uint16 FxCmd[FXCMD_SIZE];
+#ifndef _FX_CMD_H_
+Uint16 FxCmd[FXCMD_SIZE];
+#endif
 /*
  *  ======== main ========
  */
