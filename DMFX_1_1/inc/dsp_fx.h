@@ -91,20 +91,24 @@
 #define		FL_RATE				0x51
 #define		FL_DEPTH			0x52
 #define		FL_DELAY			0x53
-#define		PITCH_SHIFT			0x54
-#define		PITCH_VAL			0x55
-#define		PS_DLEVEL			0x56
-#define		PS_FXLEVEL			0x57
-#define		TREMOLO				0x58
-#define		TR_RATE				0x59
-#define		TR_DEPTH			0x5A
-#define		TR_DELAY			0x5B
-#define		REVERB				0x5C
-#define		REV_TYPE			0x5D
-#define		REV_TYPE_LIST		0x5E
-#define		REV_TIME			0x5F
-#define		REV_FXLEVEL			0x60
-#define 	FXCMD_SIZE			0x61  // Last FX Command + 1
+#define		FL_RESONANCE		0x54
+#define		FL_STEREO           0x55
+#define		FL_STEREO_LIST      0x56
+#define		FL_NOTCHES			0x57
+#define		PITCH_SHIFT			0x58
+#define		PITCH_VAL			0x59
+#define		PS_DLEVEL			0x5A
+#define		PS_FXLEVEL			0x5B
+#define		TREMOLO				0x5C
+#define		TR_RATE				0x5D
+#define		TR_DEPTH			0x5E
+#define		TR_DELAY			0x5F
+#define		REVERB				0x60
+#define		REV_DELAY			0x61
+#define		REV_DRY				0x62
+#define		REV_EARLY			0x63
+#define		REV_LATE			0x64
+#define 	FXCMD_SIZE			0x65  // Last FX Command + 1
 
 #define 	VINTAGE		1
 #define 	WARM		2

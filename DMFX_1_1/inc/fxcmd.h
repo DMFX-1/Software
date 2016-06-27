@@ -92,19 +92,23 @@ Uint16 FxCmd[FXCMD_SIZE] = {
 		0,  			//0x50: Flanger
 			128,  		//0x51: 	Rate
 			255,  		//0x52: 	Depth
-			255,  		//0x53: 	Level
-		0,  			//0x54: Phase Shift
-			12,  		//0x55: 	Pitch
-			0,  		//0x56: 	Direct Level
-			255,  		//0x57: 	Effect level
-		0,  			//0x58: Tremolo
-			128,  		//0x59: 	Rate
-			255,  		//0x5A: 	Depth
-			255,  		//0x5B:	 	Delay
-		0,  			//0x5C: Reverb
-			1,  		//0x5D: 	Type
-				4,  	//0x5E: 		Room, Hall, Stadium, Cathedral
-			255,  		//0x5F: 	Time
-			255   		//0x60: 	Effect level
+			255,  		//0x53: 	Delay
+			255,  		//0x54: 	Resonance
+			1,  		//0x55: 	Mono/Stereo
+				3,  	//0x56: 		Mono, Stereo, Leslie
+			255,  		//:0x57 	Notches
+		0,  			//:0x58 Phase Shift
+			12,  		//:0x59 	Pitch
+			0,  		//:0x5A 	Direct Level
+			255,  		//:0x5B 	Effect level
+		0,  			//:0x5C Tremolo
+			128,  		//:0x5D 	Rate
+			255,  		//:0x5E 	Depth
+			255,  		//:0x5F	 	Delay
+		0,  			//:0x60 Reverb
+			255,  		//:0x61 	Delay (Room, Hall, Stadium, Cathedral)
+			255, 	 	//:0x62 	Dry Level
+			255,  		//:0x63 	Early Level
+			255   		//:0x64 	Late level
 };
 #endif

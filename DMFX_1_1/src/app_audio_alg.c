@@ -32,21 +32,26 @@
 #include "compressor.h"
 #include "equalizer.h"
 #include "phaser.h"
+#include "flanger.h"
 #include "variabledelay.h"
+#include "reverb.h"
 
 #undef TEST
 
 // Fx parameters
 extern Uint16 FxCmd[FXCMD_SIZE];
-
-signed short int BL;
-signed short int FF;
-signed short int FB;
-signed short int stereo;
-signed short int type;
-signed short int depth;
-signed long int delay;
-unsigned long int freq;
+#if 0
+extern Uint16 CompressOn;
+extern Uint16 EqualizeOn;
+#endif
+extern Uint16 DistOn;
+extern Uint16 PhaserOn;
+extern Uint16 FlangerOn;
+extern Uint16 DelayOn;
+extern Uint16 ChorusOn;
+extern Uint16 TremoloOn;
+extern Uint16 EchoOn;
+extern Uint16 ReverbOn;
 
 /* Perform Record (Rx) audio algorithm processing */
 void Rx_Audio_Tsk(void)
@@ -109,123 +114,38 @@ void Rx_Audio_Tsk(void)
         	fxin[1] = recInBuf_r[InBufIdx + i];
             // FX chain
 #if 0
-        	// Compressor implemented via DRC function in AIC3204 codec
-            if(FxCmd[COMPRESSOR])
+        	// Compressor implemented by DRC function in AIC3204 codec
+            if(CompressOn)
             {
-            	compressor(&fxin[0], &fxin[0]);
-            	fxin[1] = fxin[0];
+            	compressor(&fxin[0], fxin);
             }
 #endif
-            if(FxCmd[DISTORTION])
+            if(DistOn)
             {
-            	DistMix_l_r(&fxin[0], &fxin[1], &fxin[0]);
-            	fxin[1] = fxin[0];
+            	DistMix_l_r(&fxin[0], &fxin[1], fxin);
             }
 #if 0
-            if(FxCmd[EQUALIZER])
+            // Equalizer implemented by Equalize function in AIC3204 codec
+            if(EqualizeOn)
             {
-            	equalizer(&fxin[0], &fxin[0]);
-            	fxin[1] = fxin[0];
+            	equalizer(&fxin[0], fxin);
             }
 #endif
-            if(FxCmd[PHASER])
+            if(PhaserOn)
             {
-            	phaser2(&fxin[0], fxin);
+            	phaser(&fxin[0], fxin);
             }
-            if(FxCmd[DELAY])
+            if(FlangerOn)
             {
-            	// convert parameters from 0 to 255 (8-bits) to -32767 to 32767 (signed 15-bits)
-            	BL  = (FxCmd[DEL_BL]-128)<<8;
-            	FF  = (FxCmd[DEL_FF]-128)<<8;
-            	FB  = (FxCmd[DEL_FB]-128)<<8;
-            	type  = FxCmd[DEL_LFO_LIST];
-            	depth = (FxCmd[DEL_DEPTH]-128)<<8;
-            	delay = (long)FxCmd[DEL_DELAY]<<7;
-            	// fmod is lfo modulation frequency in tenths of Hz
-            	// sine function is called as sine(pi*phase(Q15)) where phase is a Q15 number between -1,1, -32768,32767
-            	// lfo frequency is so low that the accumulated phase is represented in a Q31 number
-            	// pi*freq is the digital frequency in radians in a Q31 number format
-            	// sin(pi*2*fmod(Q31)/10/48000)=> 2*fmod*2^31/48000/10 => fmod*8948L
-            	// FxCmd is a value between 0-255 to scale to 0-100 dHz => 8948*100/255=3509
-            	// Fill-in buffer with input signal and increment present buffer index
-            	freq = (long)FxCmd[DEL_RATE]*3510L;		// 255*3510 = 895050 => 895050/89480 = 10Hz
-            	stereo = FxCmd[DEL_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+            	flanger(&fxin[0], fxin);
+            }
+            if(DelayOn || ChorusOn || TremoloOn || EchoOn)
+            {
             	variabledelay(&fxin[0], fxin);
             }
-            /*-----------------------------------------------------------------------------*/
-            /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
-            /*  ISChorus  1     0.7    0      1 30 ms     1 30 ms    0.15 Hz Lowpass Noise */
-            /*  Chorus    0.7   1      0.7    1 30 ms     1 30 ms    0.15 Hz Lowpass Noise */
-            /*-----------------------------------------------------------------------------*/
-            else if(FxCmd[CHORUS])
+            if(ReverbOn)
             {
-            	if(FxCmd[CH_TYPE_LIST] == ISCH)
-            	{
-                	BL = 32767;
-                	FF = 0.7*32767;
-                	FB = 0;
-            	}
-            	else
-            	{
-                	BL = 0.7*32768;
-                	FF = 32767;
-                	FB = 0.7*32768;
-            	}
-            	type  = NOISE;
-            	depth = FxCmd[CH_DEPTH]<<7;
-            	delay = (long)FxCmd[CH_DELAY]*6;	// 255*6 = 1530 samples => 1530/48 = 32ms
-            	freq = (long)FxCmd[CH_RATE]*3510L;		// 255*3510 = 895050 => 895050/89480 = 10Hz
-            	stereo = FxCmd[CH_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
-            	variabledelay(&fxin[0], fxin);
-            }
-            /*-----------------------------------------------------------------------------*/
-            /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
-            /*  Flanger   0.7   0.7   -0.7    0 10 ms     0 10 ms    0.1 1 Hz sine         */
-            /*-----------------------------------------------------------------------------*/
-            else if(FxCmd[FLANGER])
-            {
-				BL = 0.7*32767;
-				FF = 0.7*32767;
-				FB = -0.7*32767;
-            	type  = SINE;
-            	depth = FxCmd[FL_DEPTH]<<7;
-            	delay = (long)FxCmd[FL_DELAY]*15/8;	// 255*15/8 = 475 samples => 478/48 = 10ms
-            	freq = (long)FxCmd[FL_RATE]*351L;		// 255*351 = 89505 => 89505/89480 = 1Hz
-            	stereo = 0; //FxCmd[FL_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
-            	variabledelay(&fxin[0], fxin);
-            }
-            /*-----------------------------------------------------------------------------*/
-            /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
-            /*  Tremolo   0     1      0      0 5 ms      0 5 ms     0.1 5 Hz sine         */
-            /*-----------------------------------------------------------------------------*/
-            else if(FxCmd[TREMOLO])
-            {
-				BL = 0;
-				FF = 32767;
-				FB = 0;
-            	type  = SINE;
-            	depth = FxCmd[TR_DEPTH]<<7;
-            	delay = (long)FxCmd[TR_DELAY];			// 255 samples => 255/48 = 5ms
-            	freq = (long)FxCmd[TR_RATE]*1754L;		// 255*351 = 447270 => 447270/89480 = 5Hz
-            	stereo = 0; //FxCmd[TR_STEREO_LIST];	// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
-            	variabledelay(&fxin[0], fxin);
-            }
-            /*-----------------------------------------------------------------------------*/
-            /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
-            /*  Doubling  0.7   0.7    0      10 100 ms   10 100 ms  Lowpass noise         */
-            /*  Echo      1     <1     <1     > 100 ms    0  ms      No                    */
-            /*-----------------------------------------------------------------------------*/
-            else if(FxCmd[ECHO])
-            {
-				BL = 32767;
-            	FF  = (FxCmd[ECHO_FF]-128)<<8;
-            	FB  = (FxCmd[ECHO_FB]-128)<<8;
-            	type  = 0;
-            	depth = FxCmd[ECHO_DEPTH]<<7;
-            	delay = (long)FxCmd[ECHO_DELAY]<<7;		// 255*128 samples => 32640/48 = 680ms
-            	freq = 0L;
-            	stereo = FxCmd[ECHO_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
-            	variabledelay(&fxin[0], fxin);
+            	reverb(&fxin[0], fxin);
             }
 #ifdef TEST
             sine(&test, &recOutBufRight[OutBufIdxW + i], 1);
@@ -236,17 +156,6 @@ void Rx_Audio_Tsk(void)
         	recOutBufLeft[OutBufIdxW + i] = fxin[0];
 #endif
         }
-#if 0
-     	variabledelay(&recInBuf_l[InBufIdx], &recOutBufLeft[OutBufIdxW], &recOutBufRight[OutBufIdxW]);
-     	fixeddelay(32767, SamplesDel, &recInBuf_l[InBufIdx], &recOutBufLeft[OutBufIdxW], &recOutBufRight[OutBufIdxW]);
-	    dist_blk(&recInBuf_l[InBufIdx][0], RXBUFF_SZ_ADCSAMPS, 7, &recOutBufLeft[OutBufIdxW][0], &recOutBufRight[OutBufIdxW][0]);
-        compressor(&recInBuf_l[InBufIdx], RXBUFF_SZ_ADCSAMPS, 8, &recOutBufLeft[OutBufIdxW], &recOutBufRight[OutBufIdxW]);
-        if(equalizer(&recInBuf_l[InBufIdx], RXBUFF_SZ_ADCSAMPS, &recOutBufLeft[OutBufIdxW], &recOutBufRight[OutBufIdxW]) != 0)
-        	LOG_printf(&trace, "eq iircas saturation = %d", ++err);
-        if(phaser(&recInBuf_l[InBufIdx], RXBUFF_SZ_ADCSAMPS, &recOutBufLeft[OutBufIdxW], &recOutBufRight[OutBufIdxW]) != 0)
-        	LOG_printf(&trace, "phaser iircas saturation = %d", ++err);
-        clean(&recInBuf_l[InBufIdx], RXBUFF_SZ_ADCSAMPS, &recOutBufLeft[OutBufIdxW], &recOutBufRight[OutBufIdxW]);
-#endif
         InBufIdx += RXBUFF_SZ_ADCSAMPS;
         if(InBufIdx == (2*BUFFER_MAX_SIZE)) InBufIdx = 0;
         OutBufIdxW += RXBUFF_SZ_ADCSAMPS;

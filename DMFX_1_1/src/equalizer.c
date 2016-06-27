@@ -54,7 +54,7 @@
 
 // Fx parameters
 extern Uint16 FxCmd[FXCMD_SIZE];
-extern Uint16 equalize;
+extern Uint16 EqualizeOn;
 
 typedef struct biquad_t
 {
@@ -126,7 +126,7 @@ CSL_Status equalizer(void)
 	CSL_Status  status;
 	Uint16 i, j, k;
 
-	if (!equalize)
+	if (!EqualizeOn)
 	{
 		WrBuffer[0] = 0x24;  // Reg 36
 		for(i = 0; i < BANDS+1; i++)
@@ -373,7 +373,8 @@ signed short int equalizer(signed short int *input, signed short int *output)
   yh = (yh*gain[Level])>>15;
   yh = (yh > 32767L) ? 32767L : (yh < -32767L) ? -32767L : yh;
 
-  *output = (short)yh;
+  output[0] = (short)yh;
+  output[1] = (short)yh;
   return((short)yh);
 }
 #endif

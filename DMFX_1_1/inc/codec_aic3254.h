@@ -18,8 +18,8 @@
 #define I2C_OWN_ADDR            (0x2F)
 #define I2C_BUS_FREQ            (10000u)
 #define I2C_CODEC_ADDR          (0x18)
-#define GAIN_IN_dB         12			// -12dB <= GAIN_IN_dB <= 35.5dB
-#define ADC_GAIN		   2*(GAIN_IN_dB)
+#define GAIN_IN_dB         0			// -12dB <= GAIN_IN_dB <= 35.5dB
+#define ADC_GAIN		   2*(GAIN_IN_dB+12)
 
 PSP_Result Beep_Generator(Int16 freq, Int16 len);
 PSP_Result AIC3254_init(void);

@@ -51,6 +51,7 @@ extern ContextMenu_t MenuChorus [];
 extern ContextMenu_t MenuChorusType [];
 extern ContextMenu_t MenuChorus_Stereo [];
 extern ContextMenu_t MenuFlanger [];
+extern ContextMenu_t MenuFl_Stereo [];
 extern ContextMenu_t MenuPhShift [];
 extern ContextMenu_t MenuTremolo [];
 extern ContextMenu_t MenuReverb [];

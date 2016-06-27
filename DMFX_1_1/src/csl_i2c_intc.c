@@ -102,7 +102,6 @@
  * 10-Jul-2012 Added C5517 Compatibility
  * ============================================================================
  */
-
 #include "DMFX1.h"
 #include "csl_i2c.h"
 #include "csl_intc.h"
@@ -114,14 +113,50 @@
 #include "dsp_fx.h"
 #include "csl_i2c_intc.h"
 #include "equalizer.h"
+#include "variabledelay.h"
 
-#define HYSTERESIS		   0x3 // 3dB
+#define HYSTERESIS		   0x3 // 3dB Compressor Hysteresis
 
 extern Uint16 FxCmd[FXCMD_SIZE];  // Initialized with a memset function in runtime
 extern pI2cHandle    i2cHandle;
-extern const Uint16  volume_table[];
 #if 0
 extern void VECSTART(void);
+#endif
+
+// Compressor parameters
+#if 0
+extern unsigned char CmpLevel;
+extern unsigned char CmpAtt;
+extern unsigned char CmpRel;
+#endif
+// Distortion parameters
+extern signed short int DistMix;
+//Variable Delay parameters
+extern signed short int BL;
+extern signed short int FF;
+extern signed short int FB;
+extern signed short int DlyStereo;
+extern signed short int DlyType;
+extern signed short int DlyDepth;
+extern signed long int DlyDelay;
+extern unsigned long int DlyFreq;
+//Reverb parameters
+extern signed short int lpg; 	// = 27197; => 0.83 => 2s reverb delay
+extern signed short int erg; 	// = 27853;  // Early Reflections Gain
+extern signed short int lrg; 	// = 27853;  // Late Reflections Gain
+extern signed short int dry; 	// = 27853;  // Dry (direct) Gain
+// Phaser parameters
+extern signed short int PhGain;
+extern signed short int PhDepth;
+extern unsigned long int PhFreq;
+extern signed short int PhStereo;
+// Flanger parameters
+extern signed short int FlGain;
+extern signed short int FlDepth;
+extern unsigned long int FlFreq;
+extern signed short int FlStereo;
+#if 0
+extern signed short int FlType;
 #endif
 
 #ifdef I2C_MASTER_TX
@@ -136,22 +171,34 @@ Uint16             i2cTxCount;
 Uint16             i2cRxCount;
 Uint16             i2cErrInRx;
 Uint16             stopDetected = FALSE;
+// Main settings variables
 Uint16 			   hp_vol = 0;
 Uint16 			   lout_vol = 0;
 Uint16 			   ana_gain = 0;
-Uint16 			   compress = 0;
-Uint16 			   equalize = 0;
-Uint16			   distortion = 0;
-Uint16 			   threshold;
-Uint16 			   hold;
-Uint16 			   att_dec;
+// Effects On variables set on csl_i2c_intc.c
+Uint16 			   CompressOn = 0;
+Uint16 			   DistOn = 0;
+Uint16 			   EqualizeOn = 0;
+Uint16 			   PhaserOn = 0;
+Uint16 			   FlangerOn = 0;
+Uint16 			   DelayOn = 0;
+Uint16 			   ChorusOn = 0;
+Uint16 			   TremoloOn = 0;
+Uint16 			   EchoOn = 0;
+Uint16 			   ReverbOn = 0;
+// Compressor parameters
+Uint16 			   CmpThr;
+Uint16 			   CmpHold;
+Uint16 			   CmpAttDec;
+
+Int16 HPGain;
+Int16 LOGain;
+Int16 AnaGain;
 
 // I2c_Intc_SlaveRx task executes forever
 void I2c_Intc_SlaveRx(void)
 {
-	//char   FxChanges;
 	Uint16 i = 0;
-    Int16 gain;
 
 #ifdef STS_ENABLE
 	STS_add(&STS_I2c_Intc_SlaveRx, 0); // debug
@@ -171,7 +218,7 @@ void I2c_Intc_SlaveRx(void)
 		gI2cWrBuf[i + CSL_EEPROM_ADDR_SIZE] = 0x0000;
 #endif
 #ifdef I2C_SLAVE_RX
-		gI2cRdBuf[i] = 0x0000;
+		gI2cRdBuf[i] = (i < 2) ? 0x0000 : FxCmd[i];		// load with default FxCmd values
 #endif
 	}
 	LOG_printf(&trace, "I2c_Intc_SlaveRx");
@@ -179,7 +226,6 @@ void I2c_Intc_SlaveRx(void)
 	{
 	    TSK_sleep(1000);		// A delay is required to let the I2C operation end
 		I2c_Intc_Init();
-		//FxChanges = 0;
 		I2c_Intc_reInit();
 		//Synchronize both DSPs
 		// Signal I2C ready to DSP-2 on INT0
@@ -201,31 +247,36 @@ void I2c_Intc_SlaveRx(void)
 		{
 			//FxCmd[i] = gI2cRdBuf[i+2];
 			if(FxCmd[i] != gI2cRdBuf[i+2]) {
-				//FxChanges = 1;
 				FxCmd[i] = gI2cRdBuf[i+2];
 #if (DEBUG>=10)
 				LOG_printf(&trace, "I2c_Intc_SlaveRx Task: FxCmd[%d] = %d", i, FxCmd[i]);
 #endif
 			}
 		}
-		if((FxCmd[COMPRESSOR])||(FxCmd[COMPRESSOR] != compress))
+		if((FxCmd[COMPRESSOR])||(FxCmd[COMPRESSOR] != CompressOn))
 		{
-			compress = FxCmd[COMPRESSOR];
+#if 0
+			CmpLevel = FxCmd[CMP_LEVEL];
+			CmpAtt = FxCmd[CMP_ATTACK];
+			CmpRel = FxCmd[CMP_SUSTAIN];
+#endif
+			CompressOn = FxCmd[COMPRESSOR];
         	I2c_Codec_Init();
 			DRC();
 		}
-		if((FxCmd[EQUALIZER])||(FxCmd[EQUALIZER] != equalize))
+		if((FxCmd[EQUALIZER])||(FxCmd[EQUALIZER] != EqualizeOn))
 		{
-			equalize = FxCmd[EQUALIZER];
+			EqualizeOn = FxCmd[EQUALIZER];
         	I2c_Codec_Init();
 			equalizer();
 		}
-#if 0
-		if(FxCmd[DISTORTION] != distortion)
+		if(FxCmd[DISTORTION] != DistOn)
 		{
-			distortion = FxCmd[DISTORTION];
+			DistMix = FxCmd[DIST_DRIVE]<<5;	// converts distortion drive from 0-1023 to 0 - 32767
+			DistOn = FxCmd[DISTORTION];
+#if 0
 			Codec_Write(0x0,0x01); // Select page 1
-			if (distortion)
+			if (DistOn)
 			{
 				if(FxCmd[TYPE] == FUZZ)
 				{
@@ -249,72 +300,216 @@ void I2c_Intc_SlaveRx(void)
 				//adjust volume setting of right Line Out
 				Codec_Write(0x3C,45);
 			}
-		}
 #endif
+		}
 		if (FxCmd[HP_VOL]!= hp_vol)
 		{
-    		hp_vol = FxCmd[HP_VOL];
-        	gain = FxCmd[HP_VOL]/7;  // convert 0-255 to 0-36
-        	gain -=6;
-        	if (gain < -6) gain = -6;
-        	else if (gain > 29) gain = 29;
-        	gain &= 0x3F;
+        	HPGain = FxCmd[HP_VOL]/7;  // convert 0-255 to 0-36
+        	HPGain -=6;
+        	if (HPGain < -6) HPGain = -6;
+        	else if (HPGain > 29) HPGain = 29;
+        	HPGain &= 0x3F;
 #if (DEBUG>=10)
-        	LOG_printf(&trace, "Headphones Vol gain = %d", gain);
+        	LOG_printf(&trace, "Headphones Vol gain = %d", HPGain);
 #endif
         	I2c_Codec_Init();
     		Codec_Write(0x0,0x01); // Select page 1
     		//adjust volume setting of left headphone
-    		Codec_Write(0x10,gain);// gain: amplification: 0-29, Attenuation: 30-35, Mute=36
+    		Codec_Write(0x10,HPGain);// gain: amplification: 0-29, Attenuation: 30-35, Mute=36
     		//adjust volume setting of right headphone
-    		Codec_Write(0x11,gain);
+    		Codec_Write(0x11,HPGain);
+    		hp_vol = FxCmd[HP_VOL];
     	}
 		if (FxCmd[LOUT_VOL]!= lout_vol)
 		{
-    		lout_vol = FxCmd[LOUT_VOL];
-        	gain = FxCmd[LOUT_VOL]/7;  // convert 0-255 to 0-36
-        	gain -=6;
-        	if (gain < -6) gain = -6;
-        	else if (gain > 29) gain = 29;
-        	gain &= 0x3F;
+        	LOGain = FxCmd[LOUT_VOL]/7;  // convert 0-255 to 0-36
+        	LOGain -=6;
+        	if (LOGain < -6) LOGain = -6;
+        	else if (LOGain > 29) LOGain = 29;
+        	LOGain &= 0x3F;
 #if (DEBUG>=10)
-        	LOG_printf(&trace, "LineOut Vol gain = %d", gain);
+        	LOG_printf(&trace, "LineOut Vol gain = %d", LOGain);
 #endif
         	I2c_Codec_Init();
     		Codec_Write(0x0,0x01); // Select page 1
     		//adjust volume setting of left Line Out
-    		Codec_Write(0x12,gain);// gain: amplification: 0-29, Attenuation: 30-35, Mute=36
+    		Codec_Write(0x12,LOGain);// gain: amplification: 0-29, Attenuation: 30-35, Mute=36
     		//adjust volume setting of right Line Out
-    		Codec_Write(0x13,gain);
+    		Codec_Write(0x13,LOGain);
+    		lout_vol = FxCmd[LOUT_VOL];
     	}
 		if (FxCmd[ANA_GAIN]!= ana_gain)
 		{
-    		ana_gain = FxCmd[ANA_GAIN];
-        	gain = (FxCmd[ANA_GAIN]*3)>>3;  // convert 0-255 to 0-95
-        	if (gain > 95) gain = 95;
+        	AnaGain = (FxCmd[ANA_GAIN]*3)>>3;  // convert 0-255 to 0-95
+        	if (AnaGain > 95) AnaGain = 95;
 #if (DEBUG>=10)
-        	LOG_printf(&trace, "MICPGA analog gain = %d", gain/2);
+        	LOG_printf(&trace, "MICPGA analog gain = %d", AnaGain/2);
 #endif
         	//gain |= 0x80;
         	I2c_Codec_Init();
     		Codec_Write(0x0,0x01); // Select page 1
     		//adjust volume setting of left Line Out
-    		Codec_Write(0x3B,gain);// gain: amplification: 0-29, Attenuation: 30-35, Mute=36
+    		Codec_Write(0x3B,AnaGain);// gain: amplification: 0-29, Attenuation: 30-35, Mute=36
     		//adjust volume setting of right Line Out
-    		Codec_Write(0x3C,gain);
+    		Codec_Write(0x3C,AnaGain);
+    		ana_gain = FxCmd[ANA_GAIN];
     	}
+        if(FxCmd[PHASER] || (FxCmd[PHASER] != PhaserOn))
+        {
+        	PhGain  = FxCmd[PH_RESONANCE]<<7; // convert parameter from 0-255 (8-bits) to 0-32767 (signed 15-bits)
+        	PhDepth = FxCmd[PH_DEPTH]<<7; 	// convert parameter from 0-255 (8-bits) to 0-32767 (signed 15-bits)
+        	// fmod is lfo modulation frequency in tenths of Hz
+        	// sine function is called as sine(pi*phase(Q15)) where phase is a Q15 number between -1,1, -32768,32767
+        	// lfo frequency is so low that the accumulated phase is represented in a Q31 number
+        	// pi*freq is the digital frequency in radians in a Q31 number format
+        	// sin(pi*2*fmod(Q31)/10/48000)=> 2*fmod*2^31/48000/10 => fmod*8948L
+        	// FxCmd is a value between 0-255 to scale to 0-100 dHz => 8948*100/255=3509
+        	PhFreq = (long)FxCmd[PH_RATE]*3510L;
+        #if 0
+        	PhType = FxCmd[PH_TYPE];			// type = sine, noise, triangle, sawtooth
+        #endif
+        	PhStereo = FxCmd[PH_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+        	PhaserOn = FxCmd[PHASER];
+        }
+        if(FxCmd[FLANGER] || (FxCmd[FLANGER] != FlangerOn))
+        {
+			FlGain  = FxCmd[FL_RESONANCE]<<7; // convert parameter from 0-255 (8-bits) to 0-32767 (signed 15-bits)
+			FlDepth = FxCmd[FL_DEPTH]<<7; 	// convert parameter from 0-255 (8-bits) to 0-32767 (signed 15-bits)
+			// fmod is lfo modulation frequency in tenths of Hz
+			// sine function is called as sine(pi*phase(Q15)) where phase is a Q15 number between -1,1, -32768,32767
+			// lfo frequency is so low that the accumulated phase is represented in a Q31 number
+			// pi*freq is the digital frequency in radians in a Q31 number format
+			// sin(pi*2*fmod(Q31)/10/48000)=> 2*fmod*2^31/48000/10 => fmod*8948L
+			// FxCmd is a value between 0-255 to scale to 0-100 dHz => 8948*100/255=3509
+			FlFreq = (long)FxCmd[FL_RATE]*3510L;
+			FlStereo = FxCmd[FL_STEREO_LIST];		// FL_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+		#if 0
+			FlType = FxCmd[FL_TYPE];			// type = sine, noise, triangle, sawtooth
+		#endif
+        	FlangerOn = FxCmd[FLANGER];
+		}
+        if(FxCmd[DELAY] || (FxCmd[DELAY] != DelayOn))
+        {
+        	// convert parameters from 0 to 255 (8-bits) to -32767 to 32767 (signed 15-bits)
+        	BL  = (FxCmd[DEL_BL]-128)<<8;
+        	FF  = (FxCmd[DEL_FF]-128)<<8;
+        	FB  = (FxCmd[DEL_FB]-128)<<8;
+        	DlyType  = FxCmd[DEL_LFO_LIST];
+        	DlyDepth = (FxCmd[DEL_DEPTH]-128)<<8;
+        	DlyDelay = (long)FxCmd[DEL_DELAY]<<7;
+        	// fmod is lfo modulation frequency in tenths of Hz
+        	// sine function is called as sine(pi*phase(Q15)) where phase is a Q15 number between -1,1, -32768,32767
+        	// lfo frequency is so low that the accumulated phase is represented in a Q31 number
+        	// pi*freq is the digital frequency in radians in a Q31 number format
+        	// sin(pi*2*fmod(Q31)/10/48000)=> 2*fmod*2^31/48000/10 => fmod*8948L
+        	// FxCmd is a value between 0-255 to scale to 0-100 dHz => 8948*100/255=3509
+        	// Fill-in buffer with input signal and increment present buffer index
+        	DlyFreq = (long)FxCmd[DEL_RATE]*3510L;		// 255*3510 = 895050 => 895050/89480 = 10Hz
+        	DlyStereo = FxCmd[DEL_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+        	DelayOn = FxCmd[DELAY];
+        }
+        /*-----------------------------------------------------------------------------*/
+        /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
+        /*  ISChorus  1     0.7    0      1 30 ms     1 30 ms    0.15 Hz Lowpass Noise */
+        /*  Chorus    0.7   1      0.7    1 30 ms     1 30 ms    0.15 Hz Lowpass Noise */
+        /*-----------------------------------------------------------------------------*/
+        else if(FxCmd[CHORUS] || (FxCmd[CHORUS] != ChorusOn))
+        {
+        	if(FxCmd[CH_TYPE_LIST] == ISCH)
+        	{
+            	BL = 32767;
+            	FF = 0.7*32767;
+            	FB = 0;
+        	}
+        	else
+        	{
+            	BL = 0.7*32768;
+            	FF = 32767;
+            	FB = 0.7*32768;
+        	}
+        	DlyType  = SINE;
+        	DlyDepth = FxCmd[CH_DEPTH]<<7;
+        	DlyDelay = (long)FxCmd[CH_DELAY]*6;	// 255*6 = 1530 samples => 1530/48 = 32ms
+        	DlyFreq = (long)FxCmd[CH_RATE]*3510L;		// 255*3510 = 895050 => 895050/89480 = 10Hz
+        	DlyStereo = FxCmd[CH_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+        	ChorusOn = FxCmd[CHORUS];
+        }
+        /*-----------------------------------------------------------------------------*/
+        /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
+        /*  Flanger   0.7   0.7   -0.7    0 10 ms     0 10 ms    0.1 1 Hz sine         */
+        /*-----------------------------------------------------------------------------*/
+#if 0
+        // Flanger implemented by all pass comb filter Phaser-like function
+        else if(FxCmd[FLANGER] || (FxCmd[FLANGER] != FlangerOn))
+        {
+			BL = 0.7*32767;
+			FF = 0.7*32767;
+			FB = -0.7*32767;
+        	DlyType  = SINE;
+        	DlyDepth = FxCmd[FL_DEPTH]<<7;
+        	DlyDelay = (long)FxCmd[FL_DELAY]*15/8;	// 255*15/8 = 475 samples => 478/48 = 10ms
+        	DlyFreq = (long)FxCmd[FL_RATE]*351L;		// 255*351 = 89505 => 89505/89480 = 1Hz
+        	DlyStereo = 0; //FxCmd[FL_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+        	FlangerOn = FxCmd[FLANGER];
+        }
+#endif
+        /*-----------------------------------------------------------------------------*/
+        /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
+        /*  Tremolo   0     1      0      0 5 ms      0 5 ms     0.1 5 Hz sine         */
+        /*-----------------------------------------------------------------------------*/
+        else if(FxCmd[TREMOLO] || (FxCmd[TREMOLO] != TremoloOn))
+        {
+			BL = 0;
+			FF = 32767;
+			FB = 0;
+        	DlyType  = SINE;
+        	DlyDepth = FxCmd[TR_DEPTH]<<7;
+        	DlyDelay = (long)FxCmd[TR_DELAY];			// 255 samples => 255/48 = 5ms
+        	DlyFreq = (long)FxCmd[TR_RATE]*1754L;		// 255*351 = 447270 => 447270/89480 = 5Hz
+        	DlyStereo = MONO; //FxCmd[TR_STEREO_LIST];	// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+        	TremoloOn = FxCmd[TREMOLO];
+        }
+        /*-----------------------------------------------------------------------------*/
+        /*             BL   FF    FB      DELAY       DEPTH        MOD                 */
+        /*  Doubling  0.7   0.7    0      10 100 ms   10 100 ms  Lowpass noise         */
+        /*  Echo      1     <1     <1     > 100 ms    0  ms      No                    */
+        /*-----------------------------------------------------------------------------*/
+        else if(FxCmd[ECHO] || (FxCmd[ECHO] != EchoOn))
+        {
+			BL = 32767;
+        	FF  = (FxCmd[ECHO_FF]-128)<<8;
+        	FB  = (FxCmd[ECHO_FB]-128)<<8;
+        	DlyType  = 0;
+        	DlyDepth = FxCmd[ECHO_DEPTH]<<7;
+        	DlyDelay = (long)FxCmd[ECHO_DELAY]<<7;		// 255*128 samples => 32640/48 = 680ms
+        	DlyFreq = 0L;
+        	DlyStereo = FxCmd[ECHO_STEREO_LIST];		// PH_STEREO_LIST: 0=mono, 1=stereo, 2=leslie
+        	EchoOn = FxCmd[ECHO];
+        }
+        if(FxCmd[REVERB] || (FxCmd[REVERB] != ReverbOn))
+		{
+			lpg = FxCmd[REV_DELAY]<<7;
+			erg = FxCmd[REV_EARLY]<<7;
+			lrg = FxCmd[REV_LATE]<<7;
+			dry = FxCmd[REV_DRY]<<7;
+			if (lpg == 0) lpg = 16384;
+			if (erg == 0) erg = 16384;
+			if (lrg == 0) lrg = 16384;
+			if (dry == 0) dry = 16384;
+        	ReverbOn = FxCmd[REVERB];
+		}
 #ifdef STS_ENABLE
 		STS_delta(&STS_I2c_Intc_SlaveRx, CLK_gethtime()); // debug
 #endif
 #if (DEBUG>=10)
-		LOG_printf(&trace, "I2c_Intc_SlaveRx Task: FxChanges = %d", i, FxChanges);
+		LOG_printf(&trace, "I2c_Intc_SlaveRx Task");
 #endif
 	}
 }
 
 CSL_Status DRC()
 {
-	Uint16 WrBuffer[2][25] = {
+	static Uint16 WrBuffer[2][25] = {
 		{
 			0x34,
 			0x7F, 0xAB, 0x00, 0x00, 
@@ -337,7 +532,7 @@ CSL_Status DRC()
 	volatile Uint16 looper;
 	CSL_Status  status;
 	
-	if (!compress)
+	if (!CompressOn)
 	{
 	    Codec_Write(0x00, 0x2C); // select Page 44
 	    Codec_Write(0x01, 0x05); // Enable DAC adaptive filtering
@@ -367,17 +562,17 @@ CSL_Status DRC()
 	    Codec_Write(0x01, 0x05); // Enable DAC adaptive filtering
 	    // convert 0-255 (8-bits) to 0-7 (3-bits) shifting right 5-bits and shift left 2-bits
 	    // or shift left 3-bits and mask with 0x1 1100 = 0x1C
-		threshold = 0x60|((FxCmd[CMP_LEVEL]>>3)&0x1C)|HYSTERESIS;
+		CmpThr = 0x60|((FxCmd[CMP_LEVEL]>>3)&0x1C)|HYSTERESIS;
 		//threshold stores AGC left/right channel enable (bits 6,5), threshold (bits 4-2) and hysteresis (bits 1-0)
-		Codec_Write(0x44, threshold);
+		Codec_Write(0x44, CmpThr);
 		// hold is stored in bits 6-3: convert 8-bits to 7-bits and mask with 0x0111 1000 = 0x78
-		hold = (FxCmd[CMP_SUSTAIN]>>1)&0x78;
-		Codec_Write(0x45,hold);
+		CmpHold = (FxCmd[CMP_SUSTAIN]>>1)&0x78;
+		Codec_Write(0x45,CmpHold);
 		// attack is stored in bits 7-4: mask with 0x1111 0000 = 0xF0
-		att_dec = FxCmd[CMP_ATTACK]&0xF0;
+		CmpAttDec = FxCmd[CMP_ATTACK]&0xF0;
 		// decay is stored in bits 3-0: shift right 4-bits
-		att_dec  |= FxCmd[CMP_DECAY]>>4;
-		Codec_Write(0x46,att_dec); // Make DRC attack and Decay as required
+		CmpAttDec  |= FxCmd[CMP_DECAY]>>4;
+		Codec_Write(0x46,CmpAttDec); // Make DRC attack and Decay as required
 	    Codec_Write(0x00, 0x2E); // select Page 46
 		/* HPF */
 		/*

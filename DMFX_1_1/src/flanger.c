@@ -35,41 +35,46 @@
 #include <std.h>
 #include <dsplib.h>
 #include <tms320.h>
-#include "phaser.h"
+#include "flanger.h"
 #include "variabledelay.h"
 #include "dsp_fx.h"
 
 #define	ORDER  6
 #define	R      30000    			// R = exp(-pi*B/48000) B = 48 Hz
 #define	R2     ((long)R*R)>>16    	// R^2/2, coefficients scaled to 0.5 for iircas61 filtering
+// Fx parameters
+extern Uint16 FxCmd[FXCMD_SIZE];
+//unsigned short int notches;
 
-signed short int PhGain;
-signed short int PhDepth;
-unsigned long int PhFreq;
-signed short int PhStereo;
+// Flanger parameters
+signed short int FlGain;
+signed short int FlDepth;
+unsigned long int FlFreq;
+signed short int FlStereo;
 #if 0
-signed short int PhType;
+signed short int FlType;
 #endif
 
-signed short int phaser(signed short int *input, signed short int *output)
+signed short int flanger(signed short int *input, signed short int *output)
 {
 
 	static signed short int lfo_out[2] = {0, -32768};
-    //      						 pi     pi/2   pi/4   pi/8   pi/16  pi/32
-    // 							--> 3pi/4  3pi/8  3pi/16 3pi/32 3pi/64 3pi/128
-    //      						 pi/2   pi/4   pi/8   pi/16  pi/32  pi/64
-    // cos(th0) = sin(th0+pi/2) --> -3/4    7/8   11/16   19/32  35/64  67/128
-	static signed short int th0[ORDER] = {-24577, 28671, 22527, 19455, 17919, 17151};
+    //      						 0     pi/7   2pi/7  3pi/7  4pi/7  5pi/7
+    // 							--> pi/7  2pi/7  3pi/7  4pi/7  5pi/7  6pi/7
+    //      					   2pi/7  3pi/7  4pi/7  5pi/7  6pi/7   pi
+    // cos(th0) = sin(th0+pi/2) --> 9/14   11/14  13/14 -13/14 -11/14  -9/14
+	static signed short int th0[ORDER] = {21064, 25745, 30426, -30427, -25746, -21065};
+	//static signed short int th0[ORDER] = {18904, 21424, 23945, 26465, 28986, 31506, -31507, -28987, -26466, -23946, -21425, -18905};
 	static signed long int x_1[ORDER] = {0L, 0L, 0L, 0L, 0L, 0L};
 	static signed long int x_2[ORDER] = {0L, 0L, 0L, 0L, 0L, 0L};
 	static signed long int y_1[ORDER] = {0L, 0L, 0L, 0L, 0L, 0L};
 	static signed long int y_2[ORDER] = {0L, 0L, 0L, 0L, 0L, 0L};
 	signed short int thl[ORDER] = {0, 0, 0, 0, 0, 0};
+	signed short int costhl[ORDER] = {0, 0, 0, 0, 0, 0};
 #if 0
 	signed short int thr[ORDER] = {0, 0, 0, 0, 0, 0};
 	signed short int costhr[ORDER] = {0, 0, 0, 0, 0, 0};
 #endif
-	signed short int costhl[ORDER] = {0, 0, 0, 0, 0, 0};
   	// b0, b1, b2, a1, a2  -> all pass  filter
 	signed short int apl[ORDER][2] = {
   						 R2, 0,	// b0 = alpha = R^2, b1 = beta = -2R*cos(th), b2 = 1
@@ -92,21 +97,22 @@ signed short int phaser(signed short int *input, signed short int *output)
 	signed short int x;
 	signed long int y;
 
-	lfo(PhFreq, SINE, lfo_out);	// PhType = SINE
+	//notches = ORDER; //FxCmd[FL_NOTCHES]+1;
+	lfo(FlFreq, SINE, lfo_out);	// FlType = SINE
 	for (i = 0; i < ORDER; i++) {
 		thl[i] = th0[i];
-		thl[i] += (PhDepth*((long)lfo_out[0]>>(i+2)))>>15;
+		thl[i] += (FlDepth*(long)lfo_out[0]/(ORDER+1))>>15;
 #ifdef _STEREO
-		if(PhStereo == STEREO)
+		if(FlStereo == STEREO)
 		{
 			thr[i] = th0[i];
-			thr[i] += (PhDepth*((long)lfo_out[1]>>(i+2)))>>15;
+			thr[i] += (FlDepth*(long)lfo_out[1]/(ORDER+1))>>15;
 		}
 #endif
 	}
 	sine(thl, costhl, ORDER);		// cos(theta(i)) i = 0..ORDER-1
 #ifdef _STEREO
-	if(PhStereo == STEREO)
+	if(FlStereo == STEREO)
 		sine(thr, costhr, ORDER);		// cos(theta(i)) i = 0..ORDER-1
 #endif
 	x = (*input)>>1;	// max(abs(1+H(z))= 2 (6dB)> when all-pass-filter is constructive output is doubled
@@ -115,32 +121,32 @@ signed short int phaser(signed short int *input, signed short int *output)
 	{
 		apl[i][1] = (-(long)costhl[i]*R)>>15;	// a1 = b1 = beta = -R*cos(th) coeffs scaled to 0.5 for iircas61
 		y = (x_2[i]>>1) - (((long)apl[i][0]*(y_2[i] - (long)x))>>15) - (((long)apl[i][1]*(y_1[i] - x_1[i]))>>15);
-		y >>= 1;
+		//y >>= 1;
 		x_2[i] = x_1[i];
 		x_1[i] = x;
 		y_2[i] = y_1[i];
 		y_1[i] = y;
 		lout[0] += y;
 #ifdef _STEREO
-		if(PhStereo == STEREO)
+		if(FlStereo == STEREO)
 		{
 			apr[i][1] = (-(long)costhr[i]*R)>>15;	// a1 = b1 = beta = -R*cos(th) coeffs scaled to 0.5 for iircas61
 			peak_filter(x, &out[1], &apr[i][0], i);
 		}
 #endif
 	}
-	lout[0] += ((long)PhGain*x)>>15;		// add to input with gain (notch depth and direction)
+	lout[0] += ((long)FlGain*x)>>15;		// add to input with gain (notch depth and direction)
 #ifdef _STEREO
-	if(PhStereo == STEREO)
+	if(FlStereo == STEREO)
 	{
 		lout[1] = (long)out[1];
-		lout[1] += ((long)PhGain*x)>>15;		// add to input with gain (notch depth and direction)
+		lout[1] += ((long)FlGain*x)>>15;		// add to input with gain (notch depth and direction)
 	}
 	else
 #endif
 	lout[1] = lout[0];
 
-	if(PhStereo == LESLIE) {
+	if(FlStereo == LESLIE) {
 		lout[0] += ((long)lfo_out[0]*lout[0])>>16;
 		lout[1] += ((long)lfo_out[1]*lout[1])>>16;
 		lout[0] += (23170L*lout[1])>>16;
@@ -152,5 +158,5 @@ signed short int phaser(signed short int *input, signed short int *output)
 }
 
 /*****************************************************************************/
-/* End of phaser.c                                                           */
+/* End of flanger.c                                                          */
 /*****************************************************************************/

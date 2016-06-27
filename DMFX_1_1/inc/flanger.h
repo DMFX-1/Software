@@ -1,11 +1,11 @@
 /*****************************************************************************/
 /*                                                                           */
 /* FILENAME                                                                  */
-/*  phaser.h                                                                 */
+/*  flanger.h                                                                */
 /*                                                                           */
 /* DESCRIPTION                                                               */
-/*   Header file to generate a phaser                                        */
-/*   for the DMFX-1					                                         */                                               
+/*   Header file to generate a flanger                                       */
+/*   for the DMFX-1 				                                         */                                               
 /*                                                                           */
 /* REVISION                                                                  */
 /*   Revision: 1.00                                                          */
@@ -14,19 +14,16 @@
 /*                                                                           */
 /* HISTORY                                                                   */
 /*   Revision 1.00                                                           */
-/*   03/02/2012                                                              */
+/*   10/06/2016                                                              */
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef PHASER_H
-#define PHASER_H
-
-signed short int phaser(signed short int *input, signed short int *output);
-
+#ifndef FLANGER_H
+#define FLANGER_H
+signed short int flanger(signed short int *input, signed short int *output);
 #endif
-
 /*****************************************************************************/
-/* End of phaser.c                                                           */
+/* End of flanger.c                                                          */
 /*****************************************************************************/
 
   

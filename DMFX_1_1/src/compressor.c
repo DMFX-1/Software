@@ -44,8 +44,10 @@
 #include "DMFX1.h"
 #include "dsp_fx.h"
 
-// Fx parameters
-extern Uint16 FxCmd[FXCMD_SIZE];
+// Compressor parameters
+unsigned char CmpLevel;
+unsigned char CmpAtt;
+unsigned char CmpRel;
 
 // Ratio Max = log10(sqrt(2));
 // Ratio Min = log10(8);
@@ -80,14 +82,14 @@ signed short int WrBufIdx = 0;
 signed short int RdBufIdx = 0;
 
 #if 0
-void init_compressor(unsigned char level)
+void init_compressor(unsigned char CmpLevel)
 {
 	WrBufIdx = 0;
-	RdBufIdx = WrBufIdx + del[level] - 1;
+	RdBufIdx = WrBufIdx + del[CmpLevel] - 1;
 }
 #endif
 
-signed short int *compressor(signed short int *input, signed short int *output)
+signed short int compressor(signed short int *input, signed short int *output)
 {
 	static signed short int comp_buf[COMP_BUF_SIZE] ={0};
 	static ushort odd = 0;
@@ -103,23 +105,15 @@ signed short int *compressor(signed short int *input, signed short int *output)
 	short_long_t out = {0L};
 	signed long int theta = 0;
 
-	unsigned char level;
-	unsigned char att_idx;
-	unsigned char rel_idx;
-
-	level = FxCmd[CMP_LEVEL];
-	att_idx = FxCmd[CMP_ATTACK];
-	rel_idx = FxCmd[CMP_SUSTAIN];
-
 #if DEBUG>=10
 	ushort oflag;
 #endif
 
-	if(level != old_level){
-		RdBufIdx = WrBufIdx + del[level] - 1;
+	if(CmpLevel != old_level){
+		RdBufIdx = WrBufIdx + del[CmpLevel] - 1;
 		if(RdBufIdx > COMP_BUF_SIZE-1)
 			RdBufIdx -= COMP_BUF_SIZE;
-		old_level = level;
+		old_level = CmpLevel;
 	}
 	absx = (*input < 0)? -*input : *input;
 #if DEBUG>=10
@@ -132,9 +126,9 @@ signed short int *compressor(signed short int *input, signed short int *output)
 #endif
 	absx = (absx > 16383/2) ? 32767 : (absx < -16383/2) ? -32767 : (absx<<2);
 	if(absx > env.s[1])
-		theta = att[att_idx];
+		theta = att[CmpAtt];
 	else
-		theta = rel[rel_idx];
+		theta = rel[CmpRel];
 	env.l = (((long)(32767L - theta)*absx)>>15) + (((long)env.l*theta)>>15);
 #if DEBUG
 	if ((env.l > 32767L) || (env.l < -32767))
@@ -142,9 +136,9 @@ signed short int *compressor(signed short int *input, signed short int *output)
 #else
 	env.s[1]  = (env.l > 32767L) ? 32767 : (env.l < -32767L) ? -32767 : env.s[1];
 #endif
-	if(env.s[1] > ct[level])
+	if(env.s[1] > ct[CmpLevel])
 	{
-		gain.l = 32767L - (((long)(env.l - ct[level])*slope[level])>>15);
+		gain.l = 32767L - (((long)(env.l - ct[CmpLevel])*slope[CmpLevel])>>15);
 #if DEBUG
 		if ((gain.l > 32767L) || (gain.l < -32767))
 			LOG_printf(&trace, "Compressor: gain OVERFLOW!!");
@@ -162,8 +156,9 @@ signed short int *compressor(signed short int *input, signed short int *output)
 #if DEBUG>=10
 	LOG_printf(&trace, "Compressor gain = %d", gain.s[1]);
 #endif
-	*output = out.s[1];
- 	return(&out.s[1]);
+	output[0] = out.s[1];
+	output[1] = out.s[1];
+ 	return(out.s[1]);
 }
 
 /*****************************************************************************/

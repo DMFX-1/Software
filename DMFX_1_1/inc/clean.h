@@ -8,6 +8,6 @@
 #ifndef CLEAN_H_
 #define CLEAN_H_
 
-signed short int *DistMix_l_r(signed short int *input_l, signed short int *input_r, signed short int *output);
+signed short int DistMix_l_r(signed short int *input_l, signed short int *input_r, signed short int *output);
 
 #endif /* CLEAN_H_ */

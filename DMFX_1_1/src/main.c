@@ -50,24 +50,20 @@
 #include "DMFX1_CSL_BIOS_cfg.h"
 #include "DMFX_debug.h"
 #include "fxcmd.h"
+#include "variabledelay.h"
+#include "reverb.h"
 
-#ifdef EFFECTS_ON
-#pragma DATA_SECTION(DelayBuf, "SARAM")
-#pragma DATA_ALIGN(DelayBuf,4)
-signed short int DelayBuf[2*BUFFER_MAX_SIZE];		/*[4][BUFFER_MAX_SIZE/2];	Four Delay Buffers*/
-#endif
-
-#pragma DATA_SECTION(recInBuf_l, "SARAM")
+//#pragma DATA_SECTION(recInBuf_l, "SARAM")
 #pragma DATA_ALIGN(recInBuf_l,4)
 signed short int  recInBuf_l[2*BUFFER_MAX_SIZE];
-#pragma DATA_SECTION(recInBuf_r, "SARAM")
+//#pragma DATA_SECTION(recInBuf_r, "SARAM")
 #pragma DATA_ALIGN(recInBuf_r,4)
 signed short int  recInBuf_r[2*BUFFER_MAX_SIZE];
 
-#pragma DATA_SECTION(recOutBufLeft, "SARAM")
+//#pragma DATA_SECTION(recOutBufLeft, "SARAM")
 #pragma DATA_ALIGN(recOutBufLeft,4)
 Int16 recOutBufLeft[BUFFER_MAX_SIZE];
-#pragma DATA_SECTION(recOutBufRight, "SARAM")
+//#pragma DATA_SECTION(recOutBufRight, "SARAM")
 #pragma DATA_ALIGN(recOutBufRight,4)
 Int16 recOutBufRight[BUFFER_MAX_SIZE];			/* BUFFER_MAX_SIZE/MAX_I2S_TXBUFF_SZ */
 
@@ -338,6 +334,11 @@ void DMFX_init(void){
 #ifndef _FX_CMD_H_
     memset(FxCmd, 0x0, sizeof(FxCmd));
 #endif
+    DefDelayBuf();
+    AllocReverbBuf();
+    AllocDelayBuf(MAX_SIZE);
+    InitReverbBuf();
+    InitDelayBuf(MAX_SIZE);
 }
 
 /**
