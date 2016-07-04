@@ -114,6 +114,7 @@
 #include "csl_i2c_intc.h"
 #include "equalizer.h"
 #include "variabledelay.h"
+#include "pitch_shift.h"
 
 #define HYSTERESIS		   0x3 // 3dB Compressor Hysteresis
 
@@ -158,6 +159,9 @@ extern signed short int FlStereo;
 #if 0
 extern signed short int FlType;
 #endif
+// Pitch Shift parameters
+extern signed short int PSPitch;
+extern signed short int PSMix;
 
 #ifdef I2C_MASTER_TX
 Uint16  gI2cWrBuf[CSL_I2C_DATA_SIZE + CSL_EEPROM_ADDR_SIZE];
@@ -186,6 +190,7 @@ Uint16 			   ChorusOn = 0;
 Uint16 			   TremoloOn = 0;
 Uint16 			   EchoOn = 0;
 Uint16 			   ReverbOn = 0;
+Uint16 			   PitchShiftOn = 0;
 // Compressor parameters
 Uint16 			   CmpThr;
 Uint16 			   CmpHold;
@@ -497,6 +502,12 @@ void I2c_Intc_SlaveRx(void)
 			if (lrg == 0) lrg = 16384;
 			if (dry == 0) dry = 16384;
         	ReverbOn = FxCmd[REVERB];
+		}
+        if(FxCmd[PITCH_SHIFT] || (FxCmd[PITCH_SHIFT] != PitchShiftOn))
+		{
+        	PSPitch = FxCmd[PITCH_VAL];
+        	PSMix = FxCmd[PS_MIX]<<7;
+			PitchShiftOn = FxCmd[PITCH_SHIFT];
 		}
 #ifdef STS_ENABLE
 		STS_delta(&STS_I2c_Intc_SlaveRx, CLK_gethtime()); // debug

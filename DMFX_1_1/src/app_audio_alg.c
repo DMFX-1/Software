@@ -35,6 +35,7 @@
 #include "flanger.h"
 #include "variabledelay.h"
 #include "reverb.h"
+#include "pitch_shift.h"
 
 #undef TEST
 
@@ -52,6 +53,7 @@ extern Uint16 ChorusOn;
 extern Uint16 TremoloOn;
 extern Uint16 EchoOn;
 extern Uint16 ReverbOn;
+extern Uint16 PitchShiftOn;
 
 /* Perform Record (Rx) audio algorithm processing */
 void Rx_Audio_Tsk(void)
@@ -146,6 +148,10 @@ void Rx_Audio_Tsk(void)
             if(ReverbOn)
             {
             	reverb(&fxin[0], fxin);
+            }
+            if(PitchShiftOn)
+            {
+            	pitch_shift(&fxin[0], fxin);
             }
 #ifdef TEST
             sine(&test, &recOutBufRight[OutBufIdxW + i], 1);
