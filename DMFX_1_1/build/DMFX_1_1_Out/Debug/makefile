@@ -11,6 +11,7 @@ $(GEN_CMDS__FLAG) \
 "./src/variabledelay.obj" \
 "./src/reverb.obj" \
 "./src/pll_control.obj" \
+"./src/pitch_shift.obj" \
 "./src/phaser.obj" \
 "./src/main.obj" \
 "./src/i2s_sample.obj" \
@@ -155,9 +156,9 @@ DMFX.1.1.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS) C:/c55/DMFX_1_1/c55x5_drivers/dma/
 # Other Targets
 clean:
 	-$(RM) $(C5500_EXECUTABLE_OUTPUTS__QUOTED)$(GEN_HDRS__QUOTED)$(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(GEN_CMDS__QUOTED) "DMFX.1.1.out"
-	-$(RM) "DMFX1_CSL_BIOS_cfg_c.pp" "src\app_audio_alg.pp" "src\clean.pp" "src\codec_aic3254.pp" "src\compressor.pp" "src\csl_i2c_intc.pp" "src\csl_sar_intc.pp" "src\equalizer.pp" "src\flanger.pp" "src\gpio_control.pp" "src\i2s_sample.pp" "src\main.pp" "src\phaser.pp" "src\pll_control.pp" "src\reverb.pp" "src\variabledelay.pp" 
+	-$(RM) "DMFX1_CSL_BIOS_cfg_c.pp" "src\app_audio_alg.pp" "src\clean.pp" "src\codec_aic3254.pp" "src\compressor.pp" "src\csl_i2c_intc.pp" "src\csl_sar_intc.pp" "src\equalizer.pp" "src\flanger.pp" "src\gpio_control.pp" "src\i2s_sample.pp" "src\main.pp" "src\phaser.pp" "src\pitch_shift.pp" "src\pll_control.pp" "src\reverb.pp" "src\variabledelay.pp" 
 	-$(RM) "DMFX1_CSL_BIOS_cfg.pp" 
-	-$(RM) "DMFX1_CSL_BIOS_cfg.obj" "DMFX1_CSL_BIOS_cfg_c.obj" "src\app_audio_alg.obj" "src\clean.obj" "src\codec_aic3254.obj" "src\compressor.obj" "src\csl_i2c_intc.obj" "src\csl_sar_intc.obj" "src\equalizer.obj" "src\flanger.obj" "src\gpio_control.obj" "src\i2s_sample.obj" "src\main.obj" "src\phaser.obj" "src\pll_control.obj" "src\reverb.obj" "src\variabledelay.obj" 
+	-$(RM) "DMFX1_CSL_BIOS_cfg.obj" "DMFX1_CSL_BIOS_cfg_c.obj" "src\app_audio_alg.obj" "src\clean.obj" "src\codec_aic3254.obj" "src\compressor.obj" "src\csl_i2c_intc.obj" "src\csl_sar_intc.obj" "src\equalizer.obj" "src\flanger.obj" "src\gpio_control.obj" "src\i2s_sample.obj" "src\main.obj" "src\phaser.obj" "src\pitch_shift.obj" "src\pll_control.obj" "src\reverb.obj" "src\variabledelay.obj" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
