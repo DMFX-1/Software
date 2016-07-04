@@ -1,7 +1,7 @@
 #include "stdio.h"
 
-#ifndef VIBRATO_H_
-#define VIBRATO_H_
+#ifndef VARIABLEDELAY_H_
+#define VARIABLEDELAY_H_
 
 #define MAX_SIZE			32768L	// max delay = 32768/48000 = 680ms
 
@@ -26,4 +26,4 @@ signed short int *delayline(signed short int x, signed short int *xh_k);
 signed short int *lfo(unsigned long int freq, signed short int type, signed short int *lfo_out);
 void lp_noise(signed short int *lpn, unsigned long int freq);
 
-#endif /*VIBRATO_H_*/
+#endif /* VARIABLEDELAY_H_ */

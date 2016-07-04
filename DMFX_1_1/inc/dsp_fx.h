@@ -97,7 +97,7 @@
 #define		FL_NOTCHES			0x57
 #define		PITCH_SHIFT			0x58
 #define		PITCH_VAL			0x59
-#define		PS_DLEVEL			0x5A
+#define		PS_MIX				0x5A
 #define		PS_FXLEVEL			0x5B
 #define		TREMOLO				0x5C
 #define		TR_RATE				0x5D

@@ -22,4 +22,9 @@ typedef union short_long_u{
     signed long int l;
 } short_long_t;
 
+typedef union ushort_ulong_u{
+    unsigned short int s[2];
+    unsigned long int l;
+} ushort_ulong_t;
+
 #endif /* DMFX1_H_ */

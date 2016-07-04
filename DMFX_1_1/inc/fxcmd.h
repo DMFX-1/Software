@@ -97,9 +97,9 @@ Uint16 FxCmd[FXCMD_SIZE] = {
 			1,  		//0x55: 	Mono/Stereo
 				3,  	//0x56: 		Mono, Stereo, Leslie
 			255,  		//:0x57 	Notches
-		0,  			//:0x58 Phase Shift
-			12,  		//:0x59 	Pitch
-			0,  		//:0x5A 	Direct Level
+		0,  			//:0x58 Pitch Shift
+			6,  		//:0x59 	Pitch
+			128,  		//:0x5A 	Mix
 			255,  		//:0x5B 	Effect level
 		0,  			//:0x5C Tremolo
 			128,  		//:0x5D 	Rate
