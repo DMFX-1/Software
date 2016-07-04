@@ -259,9 +259,9 @@ ContextMenu_t MenuFl_Stereo [3] = {
 	{"3  Leslie      ", &MenuFlanger[4], NULL,  &MenuFl_Stereo[0], &MenuFl_Stereo[1], FL_STEREO_LIST, 3},  //=> Leslie 	3
 };
 ContextMenu_t MenuPhShift [3] = {
-	{"1  Pitch        ", &MenuTop[12], &MenuPot[0], &MenuPhShift[1], &MenuPhShift[2], PITCH_VAL, 255},	//=> Pitch:   	  Potvalue 0-255
-	{"2  Direct Level ", &MenuTop[12], &MenuPot[0], &MenuPhShift[2], &MenuPhShift[0], PS_DLEVEL, 255},	//=> Level D:  	  Potvalue 0-255
-	{"3  Effect level ", &MenuTop[12], &MenuPot[0], &MenuPhShift[0], &MenuPhShift[1], PS_FXLEVEL, 255}	//=> Level FX: 	  Potvalue 0-255
+	{"1  Pitch        ", &MenuTop[12], &MenuPot[0], &MenuPhShift[1], &MenuPhShift[1], PITCH_VAL, 6},	//=> Pitch:   	  Potvalue 0-6
+	{"2  Mix          ", &MenuTop[12], &MenuPot[0], &MenuPhShift[0], &MenuPhShift[0], PS_MIX, 255},		//=> Mix  :  	  Potvalue 0-255
+//	{"3  Effect level ", &MenuTop[12], &MenuPot[0], &MenuPhShift[0], &MenuPhShift[1], PS_FXLEVEL, 255}	//=> Level FX: 	  Potvalue 0-255
 };
 ContextMenu_t MenuTremolo [3] = {
 	{"1  Rate         ", &MenuTop[13], &MenuPot[0], &MenuTremolo[1], &MenuTremolo[2], TR_RATE, 128},	//=> Rate:   	  Potvalue 0-255
@@ -854,7 +854,12 @@ lcd_printdisplay(CSL_SpiHandle hSpi)
 		pCtx = LcdCtx->LeftContext;
 		MenuPot[0].LeftContext = pCtx;
 		Label[0] = &(pCtx->MenuStr[3]);				//skips "#  " in the string
-		if ((pCtx == &MenuPhShift[0])||(pCtx == &MenuFlanger[5]))
+		if (pCtx == &MenuPhShift[0])
+		{
+			Step[0] = 6;
+			FxCmd[pCtx->Cmd] =  SarData[2]/42;
+		}
+		else if (pCtx == &MenuFlanger[5])
 		{
 			Step[0] = 12;
 			FxCmd[pCtx->Cmd] =  SarData[2]/21;
@@ -961,7 +966,12 @@ lcd_printdisplay(CSL_SpiHandle hSpi)
 			pCtx = LcdCtx;
 			MenuPot[0].LeftContext = pCtx;
 			Label[0] = &(pCtx->MenuStr[3]);				//skips "#  " in the string
-			if ((pCtx == &MenuPhShift[0])||(pCtx == &MenuFlanger[5]))
+			if (pCtx == &MenuPhShift[0])
+			{
+				Step[0] = 6;
+				FxCmd[pCtx->Cmd] =  SarData[2]/42;
+			}
+			else if (pCtx == &MenuFlanger[5])
 			{
 				Step[0] = 12;
 				FxCmd[pCtx->Cmd] =  SarData[2]/21;
